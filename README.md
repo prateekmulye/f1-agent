@@ -16,7 +16,7 @@ flowchart LR
   A[Raw Data: results, quali, laps, track attrs]
   B[Feature Engineering — Python]
   C[Model Inference]
-  D[Explainability (attributions + NL)]
+  D[Explainability (attributions and NL)]
   E[API / Edge Functions]
   F[Next.js UI]
 
