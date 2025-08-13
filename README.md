@@ -12,20 +12,12 @@ Predicts F1 race outcomes from recent form, quali pace, tyre/strategy signals, a
 
 ## Architecture
 ```mermaid
-flowchart LR
-  A[Raw Data: results, quali, laps, track attrs]
-  B[Feature Engineering — Python]
-  C[Model Inference]
-  D[Explainability (attributions and NL)]
-  E[API / Edge Functions]
-  F[Next.js UI]
-
-  A --> B
-  B --> C
-  C --> D
-  D --> E
-  E --> F
-
+graph TD
+A[Raw Data] --> B[Feature Engineering]
+B --> C[Model Inference]
+C --> D[Explainability]
+D --> E[API Functions]
+E --> F[Next.js UI]
 ```
 - **Feature Engineering:** aggregates last N races, team/driver deltas, track-specific coefficients, weather proxies (if present).
 - **Models:** start with simple baselines (logistic/GBM) then iterate; keep model cards in `/models` to document choices.
