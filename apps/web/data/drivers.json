@@ -1,0 +1,5 @@
+[
+  { "id": "VER", "code": "VER", "name": "Max Verstappen", "constructor": "Red Bull" },
+  { "id": "NOR", "code": "NOR", "name": "Lando Norris", "constructor": "McLaren" },
+  { "id": "HAM", "code": "HAM", "name": "Lewis Hamilton", "constructor": "Mercedes" }
+]

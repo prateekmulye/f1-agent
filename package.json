@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "@neondatabase/serverless": "^1.0.1"
+  },
+  "devDependencies": {
+    "tsx": "^4.20.4"
+  }
+}
