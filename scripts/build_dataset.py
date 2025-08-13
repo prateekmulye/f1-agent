@@ -64,9 +64,10 @@ def main():
                 "race_id": race_id,
                 "driver_id": driver,
                 "quali_pos": quali_pos,
-                "avg_fp_longrun_delta": 0.0,
+                "avg_fp_longrun_delta": 0.0,   # placeholder for later live deltas
                 "constructor_form": round(c_form, 3),
-                "corcuit_effect": round(circuit_effect, 3),
+                "driver_form": round(d_form, 3),
+                "circuit_effect": round(circuit_effect, 3),
                 "weather_risk": weather_risk,
                 "points": points,
             })

@@ -1,0 +1,26 @@
+[
+  {
+    "feature": "quali_pos",
+    "weight": -1.374440120763103
+  },
+  {
+    "feature": "avg_fp_longrun_delta",
+    "weight": 0.0
+  },
+  {
+    "feature": "constructor_form",
+    "weight": 0.4813299819955369
+  },
+  {
+    "feature": "driver_form",
+    "weight": 0.025941048304633448
+  },
+  {
+    "feature": "circuit_effect",
+    "weight": -0.1896007323257147
+  },
+  {
+    "feature": "weather_risk",
+    "weight": 0.0
+  }
+]
