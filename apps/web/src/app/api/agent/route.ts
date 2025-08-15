@@ -6,6 +6,19 @@ import { StateGraph, START, END, Annotation } from "@langchain/langgraph";
 import type { BaseMessageLike } from "@langchain/core/messages";
 import { ToolMessage } from "@langchain/core/messages";
 
+const buckets = new Map<string, { tokens: number; ts: number }>();
+function allow(ip: string, rate = 30, perMs = 60_000) {
+  const now = Date.now();
+  const b = buckets.get(ip) ?? { tokens: rate, ts: now };
+  const refill = Math.floor(((now - b.ts) / perMs) * rate);
+  b.tokens = Math.min(rate, b.tokens + refill);
+  b.ts = now;
+  if (b.tokens <= 0) return false;
+  b.tokens -= 1;
+  buckets.set(ip, b);
+  return true;
+}
+
 const State = Annotation.Root({
   question: Annotation<string>(),
   output: Annotation<string>({ value: (_prev, next) => next, default: () => "" }),
@@ -80,8 +93,8 @@ async function respond(state: GraphState) {
     for (const call of calls) {
       const toolFn = tools.find((t) => t.name === call.name);
       if (!toolFn) continue;
-      const cfg = { toolCall: { id: String(call.id), name: String(call.name || "tool") } } as unknown as Parameters<typeof toolFn.invoke>[1];
-      const toolOut = await toolFn.invoke(call.args as Parameters<typeof toolFn.invoke>[0], cfg);
+      const cfg = { toolCall: { id: String(call.id), name: String(call.name || "tool") } };
+      const toolOut = await (toolFn as { invoke: (args: any, config: any) => Promise<any> }).invoke(call.args, cfg);
       const content = typeof toolOut === "string" ? toolOut : JSON.stringify(toolOut);
       messages.push(new ToolMessage({ content, name: String(call.name || "tool"), tool_call_id: String(call.id) }));
     }
@@ -97,10 +110,34 @@ const app = new StateGraph(State)
   .compile();
 
 export async function POST(req: NextRequest) {
-  const { query } = await req.json();
+  let body: any;
+  try {
+    body = await req.json();
+  } catch {
+    return new Response("Invalid JSON body", { status: 400 });
+  }
+  const query = body?.query;
+  if (typeof query !== "string" || !query.trim()) {
+    return new Response("Missing or invalid 'query' property", { status: 400 });
+  }
+
+  const xff = req.headers.get("x-forwarded-for");
+  const ip = xff ? xff.split(",")[0].trim() : "local";
+  if (!allow(ip)) return new Response("rate limited", { status: 429 });
+  
   const res = await app.invoke(
     { question: query },
     { configurable: { thread_id: crypto.randomUUID() } }
   );
-  return new Response(res.output, { headers: { "Content-Type": "text/plain; charset=utf-8" } });
+  const isStructured = typeof res.output === "object" && res.output !== null;
+  return new Response(
+    isStructured ? JSON.stringify(res.output) : String(res.output),
+    {
+      headers: {
+        "Content-Type": isStructured
+          ? "application/json; charset=utf-8"
+          : "text/plain; charset=utf-8",
+      },
+    }
+  );
 }

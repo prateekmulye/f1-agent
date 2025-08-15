@@ -1,38 +1,60 @@
 "use client";
 import { useState } from "react";
+import NavBar from "@/components/NavBar";
+import { Card, CardBody, CardHeader } from "@/components/Card";
+import RaceSelect from "@/components/RaceSelect";
 import PredictionsPanel from "@/components/PredictionsPanel";
+import ProbabilityChart from "@/components/ProbabilityChart";
+import AgentChat from "@/components/AgentChat";
 
 export default function Home() {
-  const [q, setQ] = useState("");
-  const [out, setOut] = useState("");
+  const [raceId, setRaceId] = useState("2024_gbr");
 
-  async function ask() {
-    setOut("");
-    const res = await fetch("/api/agent", { method: "POST", body: JSON.stringify({ query: q }) });
-    const reader = res.body!.getReader();
-    const decoder = new TextDecoder();
-    for (;;) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      setOut(prev => prev + decoder.decode(value));
-    }
-  }
+  const share = () => {
+    const url = new URL(window.location.href);
+    url.searchParams.set("race", raceId);
+    navigator.clipboard.writeText(url.toString());
+    alert("Share link copied!");
+  };
 
   return (
-    <main className="max-w-6xl mx-auto p-6 space-y-6">
-      <h1 className="text-2xl font-semibold">F1 Race Predictor</h1>
-      <div className="grid md:grid-cols-3 gap-4">
-        <section className="md:col-span-2 p-4 bg-white rounded shadow">
-          <div className="mb-3 flex gap-2">
-            <input className="border p-2 flex-1" value={q} onChange={e=>setQ(e.target.value)} placeholder="Ask: Why would Driver X score points?" />
-            <button className="px-3 py-2 bg-black text-white rounded" onClick={ask}>Ask</button>
-          </div>
-          <pre className="whitespace-pre-wrap text-sm">{out}</pre>
-        </section>
-        <aside className="p-4 bg-white rounded shadow">
-          <h2 className="font-medium mb-2">Upcoming race</h2>
-          <PredictionsPanel raceId="2024_gbr" />
-        </aside>
+    <main>
+      <NavBar />
+      <section className="bg-gradient-to-r from-f1-gray to-f1-carbon border-b border-zinc-800">
+        <div className="max-w-6xl mx-auto px-4 py-8">
+          <h1 className="text-3xl font-semibold">Race Predictor & Explainable Agent</h1>
+          <p className="text-zinc-300 mt-1">Historical model + live deltas (seeded) with tool-using AI explanations.</p>
+        </div>
+      </section>
+
+      <div className="max-w-6xl mx-auto px-4 py-6 grid md:grid-cols-3 gap-4">
+        <div className="md:col-span-2 flex flex-col gap-4">
+          <Card>
+            <CardHeader title="Race" action={<RaceSelect value={raceId} onChange={setRaceId} />} />
+            <CardBody>
+              <ProbabilityChart raceId={raceId} />
+            </CardBody>
+          </Card>
+
+          <Card>
+            <CardHeader title="Agent Chat" action={<button onClick={share} className="text-xs px-2 py-1 rounded bg-zinc-800 border border-zinc-700">Copy Share Link</button>} />
+            <CardBody><AgentChat /></CardBody>
+          </Card>
+        </div>
+
+        <div className="flex flex-col gap-4">
+          <Card>
+            <CardHeader title="Top Scorers (probability to score points)" />
+            <CardBody><PredictionsPanel raceId={raceId} /></CardBody>
+          </Card>
+
+          <Card>
+            <CardHeader title="About" />
+            <CardBody>
+              <p>Data: Jolpica (historical), seeded deltas (demo). Live: OpenF1 (to enable). All LLM runs traced to LangSmith.</p>
+            </CardBody>
+          </Card>
+        </div>
       </div>
     </main>
   );
