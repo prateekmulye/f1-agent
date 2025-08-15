@@ -39,6 +39,15 @@ a {
   text-decoration: none;
 }
 
+/* Carbon fiber pattern */
+.bg-carbon {
+  background:
+    radial-gradient(circle at 25% 25%, rgba(255,255,255,0.06) 2px, transparent 2px),
+    radial-gradient(circle at 75% 75%, rgba(255,255,255,0.06) 2px, transparent 2px),
+    linear-gradient(45deg, #0a0a0a 25%, #121212 25%, #121212 50%, #0a0a0a 50%, #0a0a0a 75%, #121212 75%, #121212);
+  background-size: 8px 8px, 8px 8px, 16px 16px;
+}
+
 @media (prefers-color-scheme: dark) {
   html {
     color-scheme: dark;
