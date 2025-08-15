@@ -4,6 +4,7 @@ import { z } from "zod";
 import { tool } from "@langchain/core/tools";
 import { StateGraph, START, END, Annotation } from "@langchain/langgraph";
 import type { BaseMessageLike } from "@langchain/core/messages";
+import { ToolMessage } from "@langchain/core/messages";
 
 const State = Annotation.Root({
   question: Annotation<string>(),
@@ -77,14 +78,12 @@ async function respond(state: GraphState) {
       return { ...state, output: String(ai.content) };
     }
     for (const call of calls) {
-      const toolFn = tools.find((t: any) => t.name === call.name)!;
-      const toolOut = await toolFn.invoke(call.args, { toolCall: { id: call.id, name: call.name } } as any);
-      messages.push({
-        role: "tool",
-        tool_call_id: call.id,
-        name: call.name,
-        content: typeof toolOut === "string" ? toolOut : JSON.stringify(toolOut),
-      } as any); // ToolMessageLike is compatible here
+      const toolFn = tools.find((t) => t.name === call.name);
+      if (!toolFn) continue;
+      const cfg = { toolCall: { id: String(call.id), name: String(call.name || "tool") } } as unknown as Parameters<typeof toolFn.invoke>[1];
+      const toolOut = await toolFn.invoke(call.args as Parameters<typeof toolFn.invoke>[0], cfg);
+      const content = typeof toolOut === "string" ? toolOut : JSON.stringify(toolOut);
+      messages.push(new ToolMessage({ content, name: String(call.name || "tool"), tool_call_id: String(call.id) }));
     }
   }
   return { ...state, output: "[Agent stopped after multiple tool calls]" };
