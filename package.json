@@ -1,5 +1,8 @@
 {
   "dependencies": {
+    "tailwindcss": "^3.4.0",
+    "postcss": "^8.4.31",
+    "autoprefixer": "^10.4.16",
     "@neondatabase/serverless": "^1.0.1",
     "node-fetch": "^3.3.2"
   },
