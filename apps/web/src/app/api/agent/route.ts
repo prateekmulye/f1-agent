@@ -94,7 +94,7 @@ async function respond(state: GraphState) {
       const toolFn = tools.find((t) => t.name === call.name);
       if (!toolFn) continue;
       const cfg = { toolCall: { id: String(call.id), name: String(call.name || "tool") } };
-      const toolOut = await (toolFn as { invoke: (args: any, config: any) => Promise<any> }).invoke(call.args, cfg);
+      const toolOut = await (toolFn as { invoke: (args: Record<string, unknown>, config: { toolCall: { id: string; name: string } }) => Promise<unknown> }).invoke(call.args, cfg);
       const content = typeof toolOut === "string" ? toolOut : JSON.stringify(toolOut);
       messages.push(new ToolMessage({ content, name: String(call.name || "tool"), tool_call_id: String(call.id) }));
     }
@@ -110,7 +110,7 @@ const app = new StateGraph(State)
   .compile();
 
 export async function POST(req: NextRequest) {
-  let body: any;
+  let body: { query?: string };
   try {
     body = await req.json();
   } catch {
