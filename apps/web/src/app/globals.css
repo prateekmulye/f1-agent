@@ -23,7 +23,7 @@ body {
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -39,7 +39,47 @@ a {
   text-decoration: none;
 }
 
-/* Carbon fiber pattern */
+@layer base {
+  h1 { @apply text-3xl md:text-4xl font-semibold tracking-tight; }
+  h2 { @apply text-xl md:text-2xl font-semibold tracking-tight; }
+  h3 { @apply text-base md:text-lg font-medium; }
+  p  { @apply text-zinc-300; }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition
+           bg-red-600 hover:bg-red-500 text-white disabled:opacity-60 disabled:cursor-not-allowed;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium transition
+           bg-zinc-800 hover:bg-zinc-700 text-zinc-100 border border-zinc-700;
+  }
+  .input {
+    @apply w-full bg-zinc-900 border border-zinc-700 rounded-md px-3 py-3 text-sm
+           placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-600;
+  }
+  .card {
+    @apply bg-zinc-900/70 border border-zinc-800 rounded-xl shadow-[0_6px_24px_rgba(0,0,0,0.12)];
+  }
+  .card-header {
+    @apply px-4 py-3 border-b border-zinc-800 flex items-center justify-between;
+  }
+  .card-body {
+    @apply px-4 py-4 text-sm text-zinc-200;
+  }
+  .container-page {
+    @apply max-w-6xl mx-auto px-4;
+  }
+}
+
+.hero-gradient {
+  background: radial-gradient(1200px 400px at 10% 10%, rgba(225,6,0,0.25), transparent 60%),
+              radial-gradient(800px 300px at 80% 0%, rgba(225,6,0,0.18), transparent 60%);
+}
+
+.icon { width: 18px; height: 18px; }
+
 .bg-carbon {
   background:
     radial-gradient(circle at 25% 25%, rgba(255,255,255,0.06) 2px, transparent 2px),
@@ -49,7 +89,5 @@ a {
 }
 
 @media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
+  html { color-scheme: dark; }
 }
