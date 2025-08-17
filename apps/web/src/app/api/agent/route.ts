@@ -45,9 +45,19 @@ type RaceRec = { id: string; name: string };
 const DRIVERS: DriverRec[] = (driversData as any) as DriverRec[];
 const RACES: RaceRec[] = (racesData as any) as RaceRec[];
 
+function clean(text: string) {
+  // strip punctuation and smart quotes, keep letters/numbers/underscores
+  return text
+    .normalize("NFKD")
+    .replace(/[’'`”“]/g, "")
+    .replace(/[^a-z0-9_\s]/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function normalizeDriverId(input?: string | null): string | undefined {
   if (!input) return undefined;
-  const s = String(input).trim();
+  const s = clean(String(input)).trim();
   if (!s) return undefined;
   // If it's already a code like NOR
   const byCode = DRIVERS.find((d) => d.code.toLowerCase() === s.toLowerCase());
@@ -66,7 +76,7 @@ function normalizeDriverId(input?: string | null): string | undefined {
 
 function normalizeRaceId(input?: string | null): string | undefined {
   if (!input) return undefined;
-  const s = String(input).trim();
+  const s = clean(String(input)).trim();
   if (!s) return undefined;
   // If already an id like 2024_gbr
   if (/^\d{4}_[a-z]{3}$/i.test(s)) return s;
@@ -133,7 +143,15 @@ const model = new ChatGroq({
 
 // ---------- Node: tool-call loop ----------
 async function respond(state: GraphState) {
-  const sys = "You are an Formula 1 (F1) expert. For general questions, answer directly without tools. Use tools ONLY for predictions or evals. Available tools: get_prediction, run_eval. Do not invent other tools (e.g., search). Keep answers concise, factual, and cite data sources briefly (Jolpica/OpenF1).";
+  const sys = [
+    "You are an Formula 1 (F1) expert.",
+    "For general questions, answer directly without tools.",
+    "When the user asks about odds/probability/chance/likelihood/% for a driver and a race, CALL the get_prediction tool.",
+    "Map natural inputs to: race_id like 2024_gbr and driver_id like LEC, NOR, VER.",
+    "If either id is missing or ambiguous, ask ONE concise clarifying question and then call the tool.",
+    "Available tools: get_prediction, run_eval. Do not invent other tools (e.g., search).",
+    "Keep answers concise, factual, and cite data sources briefly (OpenF1 for live signals).",
+  ].join(" ");
   const messages: BaseMessageLike[] = [
     { role: "system", content: sys },
     { role: "user", content: state.question },

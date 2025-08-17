@@ -11,5 +11,8 @@
   ],
   "env": {
     "NODE_OPTIONS": "--max-old-space-size=4096"
-  }
+  },
+  "crons": [
+    { "path": "/api/data/openf1", "schedule": "*/5 * * * *" }
+  ]
 }
