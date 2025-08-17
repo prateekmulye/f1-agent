@@ -1,26 +1,14 @@
-@reference "tailwindcss";
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  --ss-red: #E10600;
+  --ss-red-soft: #ff5b4a;
+  --ss-carbon: #0a0a0a;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
-}
-
+html, body { max-width: 100vw; overflow-x: hidden; }
 body {
   color: var(--foreground);
   background: var(--background);
@@ -28,17 +16,8 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
-
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
-}
+* { box-sizing: border-box; padding: 0; margin: 0; }
+a { color: inherit; text-decoration: none; }
 
 @layer base {
   h1 { @apply text-3xl font-semibold tracking-tight; }
@@ -46,50 +25,37 @@ a {
   h3 { @apply text-base font-medium; }
   p  { @apply text-zinc-300; }
 }
-
-/* Tailwind v4: use media queries instead of variant prefixes inside @apply */
 @media (min-width: 768px) {
   h1 { @apply text-4xl; }
   h2 { @apply text-2xl; }
-  h3 { @apply text-lg; }
 }
 
 @layer components {
-  .btn {
-    @apply inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition
-           bg-red-600 hover:bg-red-500 text-white disabled:opacity-60 disabled:cursor-not-allowed;
-  }
-  .btn-secondary {
-    @apply inline-flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium transition
-           bg-zinc-800 hover:bg-zinc-700 text-zinc-100 border border-zinc-700;
-  }
-  .input {
-    @apply w-full bg-zinc-900 border border-zinc-700 rounded-md px-3 py-3 text-sm
-           placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-600;
-  }
-  .card {
-    @apply bg-zinc-900/70 border border-zinc-800 rounded-xl shadow-[0_6px_24px_rgba(0,0,0,0.12)];
-  }
-  .card-header {
-    @apply px-4 py-3 border-b border-zinc-800 flex items-center justify-between;
-  }
-  .card-body {
-    @apply px-4 py-4 text-sm text-zinc-200;
-  }
-  .container-page {
-    @apply max-w-6xl mx-auto px-4;
-  }
-  .glass {
-    @apply bg-zinc-950/40 backdrop-blur border border-zinc-800;
-  }
-  .chip {
-    @apply inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-medium text-zinc-300;
+  .btn { @apply inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition bg-red-600 hover:bg-red-500 text-white disabled:opacity-60 disabled:cursor-not-allowed; }
+  .btn-secondary { @apply inline-flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium transition bg-zinc-900/60 border border-zinc-800 text-zinc-100 hover:text-white hover:border-zinc-700; }
+  .input { @apply w-full bg-zinc-900 border border-zinc-700 rounded-md px-3 py-3 text-sm placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-600; }
+  .card { @apply bg-zinc-900/70 border border-zinc-800 rounded-xl shadow-[0_6px_24px_rgba(0,0,0,0.12)]; }
+  .card-header { @apply px-4 py-3 border-b border-zinc-800 flex items-center justify-between; }
+  .card-body { @apply px-4 py-4 text-sm text-zinc-200; }
+  .container-page { @apply max-w-6xl mx-auto px-4; }
+  .glass { @apply bg-zinc-950/70 backdrop-blur border-b border-zinc-800; }
+  .chip { @apply inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[11px] leading-none bg-zinc-900/70 border border-zinc-800; }
+
+  .nav-surface { @apply sticky top-0 z-20 bg-zinc-950/60 backdrop-blur border-b border-zinc-900; }
+  .nav-pill { @apply inline-flex items-center gap-2 rounded-md px-3 py-1.5 bg-zinc-900/60 border border-zinc-800 text-zinc-300 hover:text-white hover:border-zinc-700 transition; }
+  .brand-word { @apply font-semibold tracking-wide bg-gradient-to-r from-zinc-200 to-zinc-400 bg-clip-text text-transparent; }
+  .title-display { @apply font-semibold tracking-tight text-4xl leading-tight; }
+  .subtitle { @apply text-zinc-300/95 text-lg; }
+  @media (min-width: 768px) {
+    .title-display { @apply text-6xl; }
+    .subtitle { @apply text-xl; }
   }
 }
 
 .hero-gradient {
-  background: radial-gradient(1200px 400px at 10% 10%, rgba(225,6,0,0.25), transparent 60%),
-              radial-gradient(800px 300px at 80% 0%, rgba(225,6,0,0.18), transparent 60%);
+  background:
+    radial-gradient(1200px 400px at 15% 15%, rgba(225,6,0,0.27), transparent 60%),
+    radial-gradient(900px 320px at 85% 5%, rgba(225,6,0,0.20), transparent 65%);
 }
 
 .icon { width: 18px; height: 18px; }
@@ -102,6 +68,13 @@ a {
   background-size: 8px 8px, 8px 8px, 16px 16px;
 }
 
-@media (prefers-color-scheme: dark) {
-  html { color-scheme: dark; }
+/* blend the car edges smoothly into the banner */
+.hero-car { filter: drop-shadow(0 6px 20px rgba(0,0,0,0.35)); }
+.hero-car svg {
+  -webkit-mask-image: linear-gradient(to left, transparent 0%, rgba(0,0,0,0.2) 8%, rgba(0,0,0,0.85) 30%, #000 80%);
+          mask-image: linear-gradient(to left, transparent 0%, rgba(0,0,0,0.2) 8%, rgba(0,0,0,0.85) 30%, #000 80%);
+  -webkit-mask-size: 100% 100%;
+          mask-size: 100% 100%;
 }
+
+@media (prefers-color-scheme: dark) { html { color-scheme: dark; } }
