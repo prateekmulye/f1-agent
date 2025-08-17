@@ -11,6 +11,7 @@ import RaceSelect from "@/components/RaceSelect";
 import PredictionsPanel from "@/components/PredictionsPanel";
 import ProbabilityChart from "@/components/ProbabilityChart";
 import AgentChatStreaming from "@/components/AgentChatStreaming";
+import LiveSnapshot from "@/components/LiveSnapshot";
 
 function TrophyIcon() {
   return (
@@ -51,8 +52,8 @@ export default function Home() {
     <main>
       <NavBar />
 
-      {/* HERO */}
-      <section className="relative h-[260px] md:h-[320px] border-b border-zinc-800 overflow-hidden">
+  {/* HERO */}
+  <section className="relative h-[200px] md:h-[240px] border-b border-zinc-800 overflow-hidden">
         {/* background image - local asset to avoid prod issues */}
         <img
           src="/window.svg"
@@ -78,7 +79,7 @@ export default function Home() {
 
                 {/* Team car silhouette (palette rotates daily) */}
                 <div className="hidden md:block hero-car shrink-0">
-                  <svg viewBox="0 0 640 160" className="w-[320px] lg:w-[420px] h-auto opacity-95">
+                  <svg viewBox="0 0 640 160" className="w-[260px] lg:w-[340px] h-auto opacity-95">
                     <defs>
                       <linearGradient id="carGradient" x1="0" y1="0" x2="1" y2="0">
                         <stop offset="0" stopColor={palette.a}/>
@@ -108,8 +109,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* DASHBOARD GRID */}
-      <div className="container-page h-full flex items-end py-6 grid grid-cols-1 md:grid-cols-3 gap-5">
+  {/* DASHBOARD GRID */}
+  <div className="container-page py-5 grid grid-cols-1 md:[grid-template-columns:2fr_1fr] gap-6">
         {/* Chart spans two columns on desktop */}
         <div className="md:col-span-2 flex flex-col gap-4">
           <div className="card">
@@ -139,6 +140,15 @@ export default function Home() {
 
           <div className="card">
             <div className="card-header">
+              <h3>Live Snapshot</h3>
+            </div>
+            <div className="card-body">
+              <LiveSnapshot />
+            </div>
+          </div>
+
+          <div className="card">
+            <div className="card-header">
               <h3>Top Scorers (probability to score points)</h3>
             </div>
             <div className="card-body">
@@ -146,14 +156,7 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="card">
-            <div className="card-header">
-              <h3>About</h3>
-            </div>
-            <div className="card-body">
-              <p>Slipstream estimates each driver’s chance to score points in the next race and shows why the model thinks so. It learns from past race results, tracks, and qualifying pace to build a baseline, then updates that view with weekend signals (like practice form or weather risk). You’ll see probabilities with uncertainty ribbons and a simple leaderboard so it’s clear who’s likely to finish in the top ten and how confident we are.</p>
-            </div>
-          </div>
+          {/* Removed long About block to reduce vertical waste. Consider a footer link instead. */}
         </div>
       </div>
     </main>

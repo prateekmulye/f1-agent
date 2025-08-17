@@ -37,7 +37,7 @@ a { color: inherit; text-decoration: none; }
   .card { @apply bg-zinc-900/70 border border-zinc-800 rounded-xl shadow-[0_6px_24px_rgba(0,0,0,0.12)]; }
   .card-header { @apply px-4 py-3 border-b border-zinc-800 flex items-center justify-between; }
   .card-body { @apply px-4 py-4 text-sm text-zinc-200; }
-  .container-page { @apply max-w-6xl mx-auto px-4; }
+  .container-page { @apply max-w-7xl mx-auto px-4; }
   .glass { @apply bg-zinc-950/70 backdrop-blur border-b border-zinc-800; }
   .chip { @apply inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[11px] leading-none bg-zinc-900/70 border border-zinc-800; }
 
