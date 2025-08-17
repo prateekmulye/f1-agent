@@ -1,14 +1,8 @@
-import type { Config } from 'tailwindcss'
+import type { Config } from "tailwindcss";
 
+// Minimal Tailwind v4 config. Content scanning is automatic in v4 when using the
+// official PostCSS plugin, so we only extend the theme as needed.
 const config: Config = {
-  content: [
-    "./src/app/**/*.{js,ts,jsx,tsx}",
-    "./src/components/**/*.{js,ts,jsx,tsx}",
-    "./app/**/*.{js,ts,jsx,tsx}",
-    "./components/**/*.{js,ts,jsx,tsx}",
-    "./pages/**/*.{js,ts,jsx,tsx}",
-    "./**/*.{js,ts,jsx,tsx}"
-  ],
   theme: {
     extend: {
       colors: {
@@ -31,5 +25,6 @@ const config: Config = {
     },
   },
   plugins: [],
-}
-export default config
+};
+
+export default config;

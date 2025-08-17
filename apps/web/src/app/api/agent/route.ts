@@ -1,3 +1,16 @@
+/**
+ * Agent API (POST /api/agent)
+ *
+ * Overview
+ * - Lightweight F1 expert using Groq Llama 3.1 with two tools: get_prediction and run_eval.
+ * - Answers general questions directly; invokes tools only for predictions/evals.
+ * - Normalizes free-form inputs (e.g., “Lando Norris”, “British GP 2024”) to internal ids.
+ *
+ * Approach
+ * - Small, dependency-free normalization via bundled JSON lists of drivers and races.
+ * - Strict tool discipline both by instruction and code: filter unknown tool names.
+ * - Clear errors from underlying APIs are surfaced back to the model.
+ */
 import { NextRequest } from "next/server";
 import { ChatGroq } from "@langchain/groq";
 import { z } from "zod";
@@ -5,6 +18,8 @@ import { tool } from "@langchain/core/tools";
 import { StateGraph, START, END, Annotation } from "@langchain/langgraph";
 import type { BaseMessageLike } from "@langchain/core/messages";
 import { ToolMessage } from "@langchain/core/messages";
+import driversData from "../../../../data/drivers.json" assert { type: "json" };
+import racesData from "../../../../data/races.json" assert { type: "json" };
 
 const buckets = new Map<string, { tokens: number; ts: number }>();
 function allow(ip: string, rate = 30, perMs = 60_000) {
@@ -25,22 +40,69 @@ const State = Annotation.Root({
 });
 type GraphState = typeof State.State;
 
+type DriverRec = { id: string; code: string; name: string };
+type RaceRec = { id: string; name: string };
+const DRIVERS: DriverRec[] = (driversData as any) as DriverRec[];
+const RACES: RaceRec[] = (racesData as any) as RaceRec[];
+
+function normalizeDriverId(input?: string | null): string | undefined {
+  if (!input) return undefined;
+  const s = String(input).trim();
+  if (!s) return undefined;
+  // If it's already a code like NOR
+  const byCode = DRIVERS.find((d) => d.code.toLowerCase() === s.toLowerCase());
+  if (byCode) return byCode.code;
+  // Try match by name last token or full name
+  const lower = s.toLowerCase();
+  const tokens = lower.split(/\s+/);
+  const last = tokens[tokens.length - 1];
+  const byName = DRIVERS.find((d) =>
+    d.name.toLowerCase() === lower ||
+    d.name.toLowerCase().includes(lower) ||
+    d.name.toLowerCase().includes(last)
+  );
+  return byName?.code;
+}
+
+function normalizeRaceId(input?: string | null): string | undefined {
+  if (!input) return undefined;
+  const s = String(input).trim();
+  if (!s) return undefined;
+  // If already an id like 2024_gbr
+  if (/^\d{4}_[a-z]{3}$/i.test(s)) return s;
+  const lower = s.toLowerCase();
+  // Remove year tokens and words like grand prix
+  const cleaned = lower.replace(/\b(19|20)\d{2}\b/g, "").replace(/grand\s+prix|gp/g, "").trim();
+  const byName = RACES.find((r) => r.name.toLowerCase().includes(cleaned));
+  return byName?.id;
+}
+
 const getPrediction = tool(
   async (input: unknown) => {
-    const { race_id, driver_id } = input as { race_id: string; driver_id?: string };
+    const { race_id, driver_id } = input as { race_id?: string; driver_id?: string };
+    const rid = normalizeRaceId(race_id) || race_id;
+    const did = normalizeDriverId(driver_id) || driver_id;
+    if (!rid) {
+      const available = RACES.map((r) => r.id).join(", ");
+      return `race_id is required. Available races: ${available}`;
+    }
     const base =
       process.env.NEXT_PUBLIC_APP_URL ||
       (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
     const url = new URL("/api/predict", base);
-    url.searchParams.set("race_id", race_id);
-    if (driver_id) url.searchParams.set("driver_id", driver_id);
+    url.searchParams.set("race_id", rid);
+    if (did) url.searchParams.set("driver_id", did);
     const r = await fetch(url.toString(), { cache: "no-store" });
+    if (!r.ok) {
+      const body = await r.text().catch(() => "");
+      return `Prediction request failed (${r.status}). ${body || ""}`.trim();
+    }
     return await r.text();
   },
   {
     name: "get_prediction",
     description: "Get probability of scoring points for a driver in a race",
-    schema: z.object({ race_id: z.string(), driver_id: z.string().optional() }),
+    schema: z.object({ race_id: z.string().optional(), driver_id: z.string().optional() }),
   }
 );
 
@@ -71,7 +133,7 @@ const model = new ChatGroq({
 
 // ---------- Node: tool-call loop ----------
 async function respond(state: GraphState) {
-  const sys = "You are an Formula 1 (F1) expert. Use tools when the user asks for predictions or metrics. Keep answers concise, factual, and cite data sources briefly (Jolpica/OpenF1).";
+  const sys = "You are an Formula 1 (F1) expert. For general questions, answer directly without tools. Use tools ONLY for predictions or evals. Available tools: get_prediction, run_eval. Do not invent other tools (e.g., search). Keep answers concise, factual, and cite data sources briefly (Jolpica/OpenF1).";
   const messages: BaseMessageLike[] = [
     { role: "system", content: sys },
     { role: "user", content: state.question },
@@ -85,7 +147,7 @@ async function respond(state: GraphState) {
     });
     messages.push(ai);
 
-    const calls = ai.tool_calls ?? [];
+  const calls = (ai.tool_calls ?? []).filter((c: any) => c && (c.name === "get_prediction" || c.name === "run_eval"));
     if (calls.length === 0) {
       // final answer
       return { ...state, output: String(ai.content) };

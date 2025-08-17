@@ -1,3 +1,8 @@
+/**
+ * RaceSelect
+ *
+ * Dropdown bound to /api/races for choosing the current race context.
+ */
 "use client";
 import { useEffect, useState } from "react";
 import { set } from "zod";
@@ -11,11 +16,12 @@ type Race = {
 
 export default function RaceSelect({ value, onChange }:{ value:string; onChange:(v:string)=>void }) {
     const [races, setRaces] = useState<Race[]>([]);
-    useEffect(() => {
-        fetch("/api/races")
-        .then(r => r.json())
-        .then(setRaces);
-    });
+        useEffect(() => {
+                fetch("/api/races")
+                    .then(r => r.json())
+                    .then(setRaces)
+                    .catch(() => setRaces([]));
+        }, []);
     return (
         <select
             className="bg-zinc-900 border border-zinc-700 rounded-md px-2 py-1 text-zinc-100"

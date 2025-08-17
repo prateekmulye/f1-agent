@@ -1,3 +1,4 @@
+@reference "tailwindcss";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -40,10 +41,17 @@ a {
 }
 
 @layer base {
-  h1 { @apply text-3xl md:text-4xl font-semibold tracking-tight; }
-  h2 { @apply text-xl md:text-2xl font-semibold tracking-tight; }
-  h3 { @apply text-base md:text-lg font-medium; }
+  h1 { @apply text-3xl font-semibold tracking-tight; }
+  h2 { @apply text-xl font-semibold tracking-tight; }
+  h3 { @apply text-base font-medium; }
   p  { @apply text-zinc-300; }
+}
+
+/* Tailwind v4: use media queries instead of variant prefixes inside @apply */
+@media (min-width: 768px) {
+  h1 { @apply text-4xl; }
+  h2 { @apply text-2xl; }
+  h3 { @apply text-lg; }
 }
 
 @layer components {
@@ -70,6 +78,12 @@ a {
   }
   .container-page {
     @apply max-w-6xl mx-auto px-4;
+  }
+  .glass {
+    @apply bg-zinc-950/40 backdrop-blur border border-zinc-800;
+  }
+  .chip {
+    @apply inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-medium text-zinc-300;
   }
 }
 

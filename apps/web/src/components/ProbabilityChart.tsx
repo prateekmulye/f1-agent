@@ -1,3 +1,9 @@
+/**
+ * ProbabilityChart
+ *
+ * Visualizes top-10 probability-to-score using bands for uncertainty.
+ * Fetches data from /api/predict and renders an area chart via Recharts.
+ */
 "use client";
 import { useEffect, useState } from "react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
