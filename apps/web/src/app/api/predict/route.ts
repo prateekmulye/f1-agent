@@ -1,3 +1,10 @@
+/**
+ * Predict API (GET /api/predict)
+ *
+ * Computes probability of scoring points for one or many drivers in a race
+ * using a simple logistic baseline and coefficients stored in the database.
+ * Returns either a single record (when driver_id is provided) or a sorted list.
+ */
 import { NextRequest } from "next/server";
 import { sql } from "@/lib/db";
 
@@ -79,9 +86,7 @@ export async function GET(req: NextRequest) {
       };
     });
 
-    if (driver_id) {
-      return Response.json(rows[0]);
-    }
+  if (driver_id) return Response.json(rows[0]);
 
     const sortedRows = rows.sort((a, b) => b.prob_points - a.prob_points);
     return Response.json(sortedRows);

@@ -6,9 +6,9 @@
 [![AI Powered](https://img.shields.io/badge/AI-Powered-5B00FF?style=for-the-badge&logo=openai&logoColor=white)](https://f1-agent.vercel.app)
 [![Built with Llama](https://img.shields.io/badge/Built%20with-Llama-FF61F6?style=for-the-badge&logo=meta&logoColor=white)](https://f1-agent.vercel.app)
 
-[Live Demo](https://f1-agent.vercel.app) • [Documentation](#architecture) • [Quick Start](#local-development)
+[Live Demo](https://f1-agent.vercel.app) • [Architecture](#-architecture) • [Quick Start](#-quick-start)
 
-**Last Updated:** Aug 13, 2025
+**Last Updated:** Aug 16, 2025
 </div>
 
 Predicts F1 race outcomes from recent form, quali pace, tyre/strategy signals, and track history — then explains *why* with feature attributions and natural‑language rationales.
@@ -28,14 +28,13 @@ Predicts F1 race outcomes from recent form, quali pace, tyre/strategy signals, a
 
 ### 🤖 Data/ML
 ![Python](https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white)
-![Pandas](https://img.shields.io/badge/Pandas-150458?style=flat-square&logo=pandas&logoColor=white)
-![scikit-learn](https://img.shields.io/badge/scikit--learn-F7931E?style=flat-square&logo=scikit-learn&logoColor=white)
+Lightweight logistic baseline and utilities in `scripts/`.
 </td>
 <td>
 
 ### ☁️ Infrastructure
 ![Vercel](https://img.shields.io/badge/Vercel-000000?style=flat-square&logo=vercel&logoColor=white)
-![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?style=flat-square&logo=github-actions&logoColor=white)
+![Neon](https://img.shields.io/badge/Neon-Postgres-00E599?style=flat-square&logo=postgresql&logoColor=white)
 ![pnpm](https://img.shields.io/badge/pnpm-F69220?style=flat-square&logo=pnpm&logoColor=white)
 </td>
 </tr>
@@ -45,106 +44,59 @@ Predicts F1 race outcomes from recent form, quali pace, tyre/strategy signals, a
 
 ```mermaid
 graph TD
-    A[🏁 Raw Data] --> B[⚙️ Feature Engineering]
-    B --> C[🧠 Model Inference]
-    C --> D[💡 Explainability]
-    D --> E[⚡ API Functions]
-    E --> F[🎨 Next.js UI]
+  A[🏁 Raw Data] --> B[⚙️ Feature Engineering]
+  B --> C[� Baseline Scoring]
+  C --> D[⚡ API Functions]
+  D --> E[🎨 Next.js UI]
     
     style A fill:#E10600,stroke:#2F2F2F,stroke-width:2px,color:#FFFFFF
     style B fill:#1E1E1E,stroke:#E10600,stroke-width:2px,color:#FFFFFF
-    style C fill:#2F2F2F,stroke:#E10600,stroke-width:2px,color:#FFFFFF
-    style D fill:#E10600,stroke:#2F2F2F,stroke-width:2px,color:#FFFFFF
-    style E fill:#1E1E1E,stroke:#E10600,stroke-width:2px,color:#FFFFFF
-    style F fill:#2F2F2F,stroke:#E10600,stroke-width:2px,color:#FFFFFF
+  style C fill:#2F2F2F,stroke:#E10600,stroke-width:2px,color:#FFFFFF
+  style D fill:#1E1E1E,stroke:#E10600,stroke-width:2px,color:#FFFFFF
+  style E fill:#2F2F2F,stroke:#E10600,stroke-width:2px,color:#FFFFFF
     
     linkStyle default stroke:#E10600,stroke-width:2px
 ```
-- **Feature Engineering:** aggregates last N races, team/driver deltas, track-specific coefficients, weather proxies (if present).
-- **Models:** start with simple baselines (logistic/GBM) then iterate; keep model cards in `/models` to document choices.
-- **Explainability:** SHAP-like or permutation-attribution summaries → rendered as bar charts and natural-language notes.
+- Feature engineering: aggregates last N races, team/driver deltas, track-specific effects, weather proxies (if present).
+- Baseline model: logistic with coefficients stored in Postgres or JSON.
+- UI: Next.js App Router, streaming chat, Tailwind v4 layer utilities.
 
 ## 🚀 Quick Start
 
-<details>
-<summary>💻 Frontend Setup</summary>
-
 ```bash
-# Enable pnpm
 corepack enable
-
-# Install dependencies and start dev server
-pnpm i && pnpm --filter web dev
+pnpm i
+pnpm --filter web dev
 ```
-</details>
 
-<details>
-<summary>🐍 Python Environment Setup</summary>
+Environment variables:
+- NEON_DATABASE_URL (optional; required for evals/seeding)
+- GROQ_API_KEY (optional; for agent answers via Groq LLM)
 
-```bash
-# Create and activate virtual environment
-python -m venv .venv && source .venv/bin/activate
+## Agent & Evals
 
-# Install dependencies
-pip install -r requirements.txt
-
-# Run tests
-pytest -q
-```
-</details>
-
-## Example: Explainability Output
-```json
-{
-  "race_id": "demo-001",
-  "prediction": { "driver": "VER", "p_win": 0.42, "p_podium": 0.78 },
-  "top_features": [
-    { "feature": "quali_delta", "value": -0.18, "attribution": 0.34 },
-    { "feature": "long_run_pace", "value": 0.27, "attribution": 0.21 },
-    { "feature": "track_history_driver", "value": 0.31, "attribution": 0.17 },
-    { "feature": "pit_stop_efficiency_team", "value": 0.09, "attribution": 0.11 }
-  ],
-  "notes": [
-    "Qualifying pace relative to field strongly favors the prediction.",
-    "Long-run pace in FP sessions is a secondary contributor.",
-    "Driver's past results at this circuit add confidence."
-  ]
-}
-```
-> The UI renders these attributions as a chart plus a short paragraph explaining impact and direction.
+- Agent API: `/api/agent` uses Groq (Llama 3.1) with two tools: `get_prediction`, `run_eval`.
+- Input normalization: free-form names like “Lando Norris” → `NOR`, “British GP 2024” → `2024_gbr`.
+- Evals API: `/api/evals/run` shells out to `scripts/run_eval.ts`.
+  - Dev: runs via tsx from repo root; requires `NEON_DATABASE_URL`.
+  - Prod/serverless: falls back to node; if process spawn is blocked, returns diagnostics.
 
 ## 📊 Datasets
-<details>
-<summary>Data Organization</summary>
-
-- 📁 Raw data (CSV/Parquet) → `/data/raw`
-- 📊 Processed features → `/data/processed` (gitignored)
-- 📝 Documentation → `/data/DATASET.md` (provenance & limitations)
-</details>
+- `data/historical_features.csv` for training/evals
+- `data/model.json` for seed coefficients
 
 ## 🧪 Testing
-<details>
-<summary>Test Suite Details</summary>
-
-- ✅ Unit tests for feature builders (`tests/feature_builders_test.py`)
-- 🔄 Integration tests with minimal fixtures
-- 📈 Coverage reports in CI pipeline
-</details>
+This project currently focuses on end-to-end behavior. Add unit/integration tests as you evolve the model and UI.
 
 ## 🔄 CI/CD
-[![CI Status](https://img.shields.io/github/actions/workflow/status/prateekmulye/f1-agent/ci.yml?branch=main&style=for-the-badge&label=CI/CD)](https://github.com/prateekmulye/f1-agent/actions)
+Build and deploy via Vercel and pnpm workspaces. Add a CI workflow when tests land.
 
-Automated workflows in `.github/workflows/ci.yml`:
-- 🛠️ Build validation
-- 🧪 Test execution
-- 📊 Code coverage
-- 🚀 Deployment checks
-
-## 🗺️ Roadmap
-- [ ] 🎯 Per-track feature weights
-- [ ] ⚡ Strategy simulation (pit windows & tyre compounds)
-- [ ] 📝 Model cards + dataset datasheet
-- [ ] 🔄 Export JSON for downstream agents
+## 🔮 Future work
+- Per-track and per-session feature weights
+- Live data ingestion (OpenF1) for FP/Quali deltas
+- Model cards and dataset documentation
+- Background job for evals (no child_process), plus tracing
+- Richer attributions with visual breakdowns per driver
 
 ## 📄 License
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=for-the-badge)](LICENSE)

@@ -1,3 +1,8 @@
+/**
+ * PredictionsPanel
+ *
+ * Simple list representation of top-10 probabilities from /api/predict.
+ */
 "use client";
 import { useEffect, useState } from "react";
 

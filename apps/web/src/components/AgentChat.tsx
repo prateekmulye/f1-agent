@@ -1,123 +1,84 @@
+/**
+ * Legacy predictions panel (kept for reference)
+ *
+ * Renders a top-10 list with simple bars. Superseded by the newer
+ * components but retained to avoid losing prior work and for side-by-side
+ * comparisons when iterating on the UI.
+ */
 "use client";
-import { useEffect, useState } from "react";
-import AgentChat from "@/components/AgentChat";
-import PredictionsPanel from "@/components/PredictionsPanel";
-import ProbabilityChart from "@/components/ProbabilityChart";
-import RaceSelect from "@/components/RaceSelect";
+import { useEffect, useMemo, useState } from "react";
 
-function FlagIcon() {
+type Row = { driver_id: string; prob_points: number; score: number };
+
+const TEAM_COLORS: Record<string, string> = {
+  VER: "#0600EF", PER: "#0600EF",
+  LEC: "#F91536", SAI: "#F91536",
+  NOR: "#FF8000", PIA: "#FF8000",
+  HAM: "#00D2BE", RUS: "#00D2BE",
+  ALO: "#006F62", STR: "#006F62",
+  GAS: "#0096FF", OCO: "#0096FF",
+  ALB: "#005AFF", SAR: "#005AFF",
+  TSU: "#2B4562", RIC: "#2B4562",
+  BOT: "#00E701", ZHO: "#00E701",
+  HUL: "#B6BABD", MAG: "#B6BABD",
+};
+
+function DriverAvatar({ code }: { code: string }) {
+  const bg = TEAM_COLORS[code] ?? "#444";
   return (
-    <svg className="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M5 3v18" stroke="#a1a1aa" strokeWidth="2" />
-      <path d="M5 4c6-3 8 3 14 0v9c-6 3-8-3-14 0V4Z" fill="#E10600" opacity=".9" />
-      <path d="M5 8c6-3 8 3 14 0" stroke="#121212" strokeOpacity=".6" />
-    </svg>
+    <div
+      className="w-7 h-7 rounded-full grid place-items-center text-[11px] font-semibold text-white shadow"
+      style={{ backgroundColor: bg }}
+      aria-label={`${code} avatar`}
+    >
+      {code}
+    </div>
   );
 }
 
-function TrophyIcon() {
-  return (
-    <svg className="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M8 4h8v3a4 4 0 0 0 4 4h1v2a6 6 0 0 1-6 6H9a6 6 0 0 1-6-6v-2h1a4 4 0 0 0 4-4V4Z" stroke="#e4e4e7" strokeWidth="1.5"/>
-      <path d="M10 19v2h4v-2" stroke="#a1a1aa" strokeWidth="1.5"/>
-    </svg>
-  );
-}
-
-export default function Home() {
-  const [raceId, setRaceId] = useState("2024_gbr");
-
-  // read ?race= from URL if present
+export default function PredictionsPanel({ raceId }: { raceId: string }) {
+  const [rows, setRows] = useState<Row[]>([]);
   useEffect(() => {
-    const url = new URL(window.location.href);
-    const r = url.searchParams.get("race");
-    if (r) setRaceId(r);
-  }, []);
+    fetch(`/api/predict?race_id=${raceId}`)
+      .then((r) => r.json())
+      .then((d: Row[]) => setRows(d));
+  }, [raceId]);
 
-  const copyShare = () => {
-    const url = new URL(window.location.href);
-    url.searchParams.set("race", raceId);
-    navigator.clipboard.writeText(url.toString());
-    alert("Share link copied!");
-  };
+  const top10 = useMemo(() => rows.slice(0, 10), [rows]);
 
   return (
-    <main>
-      {/* HERO */}
-      <section className="relative border-b border-zinc-800 overflow-hidden">
-        {/* background image */}
-        <img
-          src="https://images.unsplash.com/photo-1517329782449-810562a4ec2a?auto=format&fit=crop&w=1600&q=60"
-          alt="F1 car on track"
-          className="absolute inset-0 w-full h-full object-cover opacity-20"
-        />
-        <div className="hero-gradient relative">
-          <div className="container-page py-8 md:py-10">
-            <div className="flex items-center gap-2 text-zinc-300 text-sm mb-2">
-              <FlagIcon />
-              <span>Slipstream</span>
-            </div>
-            <h1 className="mb-2">Race Predictor &amp; Explainable Agent</h1>
-            <p>Historical model + live deltas (seeded) with tool‑using AI explanations.</p>
-
-            <div className="mt-5 flex flex-wrap items-center gap-3">
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-zinc-300">Race</span>
-                <RaceSelect value={raceId} onChange={setRaceId} />
+    <ul className="space-y-2">
+      {top10.map((r, i) => {
+        const pct = Math.round(r.prob_points * 1000) / 10;
+        const code = r.driver_id.toUpperCase();
+        const team = TEAM_COLORS[code] ? Object.keys(TEAM_COLORS).find(k => k === code) : undefined;
+        const chipColor = TEAM_COLORS[code] ?? "#444";
+        return (
+          <li key={r.driver_id} className="p-2 rounded-lg bg-zinc-900/60 border border-zinc-800">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="w-5 text-zinc-400">{i + 1}</span>
+                <DriverAvatar code={code} />
+                <span className="font-medium">{r.driver_id}</span>
+                <span
+                  className="chip"
+                  style={{ borderColor: chipColor, color: chipColor }}
+                >
+                  {/* team chip uses driver code color */}
+                  {code}
+                </span>
               </div>
-              <button onClick={copyShare} className="btn-secondary">Copy Share Link</button>
+              <span className="tabular-nums">{pct.toFixed(1)}%</span>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* DASHBOARD GRID */}
-      <div className="container-page py-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Left column */}
-        <div className="md:col-span-2 flex flex-col gap-4">
-          <div className="card">
-            <div className="card-header">
-              <h3>Likelihood to Score Points (Top 10)</h3>
-              <div className="flex items-center gap-2 text-xs text-zinc-400">
-                <TrophyIcon /> Uncertainty ribbons ±8%
-              </div>
+            <div className="mt-2 h-2 rounded bg-zinc-800 overflow-hidden">
+              <div
+                className="h-full bg-red-600"
+                style={{ width: `${Math.min(100, Math.max(0, pct))}%` }}
+              />
             </div>
-            <div className="card-body">
-              <ProbabilityChart raceId={raceId} />
-            </div>
-          </div>
-
-          <div className="card">
-            <div className="card-header">
-              <h3>Agent Chat</h3>
-            </div>
-            <div className="card-body">
-              <AgentChat />
-            </div>
-          </div>
-        </div>
-
-        {/* Right column */}
-        <div className="flex flex-col gap-4">
-          <div className="card">
-            <div className="card-header">
-              <h3>Top Scorers (probability to score points)</h3>
-            </div>
-            <div className="card-body">
-              <PredictionsPanel raceId={raceId} />
-            </div>
-          </div>
-
-          <div className="card">
-            <div className="card-header">
-              <h3>About</h3>
-            </div>
-            <div className="card-body">
-              <p>Data: Jolpica (historical), seeded deltas (demo). Live: OpenF1 (to enable). All LLM runs traced to LangSmith.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </main>
+          </li>
+        );
+      })}
+    </ul>
   );
 }
