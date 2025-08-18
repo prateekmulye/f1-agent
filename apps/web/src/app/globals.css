@@ -78,3 +78,9 @@ a { color: inherit; text-decoration: none; }
 }
 
 @media (prefers-color-scheme: dark) { html { color-scheme: dark; } }
+
+/* simple marquee animation used by LiveSnapshot */
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}

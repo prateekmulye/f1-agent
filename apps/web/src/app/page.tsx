@@ -31,9 +31,15 @@ function dailyPalette(now = new Date()): Palette {
   return { a: "#FF4D40", b: "#E10600", stripe: "#7a0f0d" }; // Ferrari default
 }
 
+function bossName(now = new Date()) {
+  const names = ["Toto", "Zak", "Fred"];
+  return names[Math.floor((now.getTime() / 86400000) % names.length)];
+}
+
 export default function Home() {
   const [raceId, setRaceId] = useState("2024_gbr");
   const palette = useMemo(() => dailyPalette(), []);
+  const boss = useMemo(() => bossName(), []);
 
   useEffect(() => {
     const url = new URL(window.location.href);
@@ -128,9 +134,9 @@ export default function Home() {
 
         {/* Right column: Agent chat first (no scrolling to find it) */}
         <div className="flex flex-col gap-4">
-          <div className="card">
+      <div className="card">
             <div className="card-header">
-              <h3>Agent Chat</h3>
+        <h3>Talk to {boss}…</h3>
               <button onClick={copyShare} className="text-xs px-2 py-1 rounded bg-zinc-800 border border-zinc-700">Copy Share Link</button>
             </div>
             <div className="card-body">
@@ -140,7 +146,7 @@ export default function Home() {
 
           <div className="card">
             <div className="card-header">
-              <h3>Live Snapshot</h3>
+        <h3>Trackside Now: leaders and conditions</h3>
             </div>
             <div className="card-body">
               <LiveSnapshot />

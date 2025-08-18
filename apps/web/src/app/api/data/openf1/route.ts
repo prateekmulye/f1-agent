@@ -61,9 +61,14 @@ async function ensureTables() {
       driver_id text,
       full_name text,
       name_acronym text,
-      team_name text
+    team_name text,
+    country_code text,
+    country_name text
     );
   `;
+  // backfill columns when upgrading from earlier schema
+  await sql`alter table openf1_drivers add column if not exists country_code text`;
+  await sql`alter table openf1_drivers add column if not exists country_name text`;
   await sql`
     create table if not exists openf1_positions_latest (
       session_key int,
@@ -99,8 +104,9 @@ function iso(d: Date) { return d.toISOString(); }
 
 export async function GET(req: NextRequest) {
   try {
-    const auth = req.nextUrl.searchParams.get("key") ?? req.headers.get("x-cron-key");
-    if (CRON_SECRET && auth !== CRON_SECRET) {
+  const isDev = process.env.NODE_ENV !== "production";
+  const auth = req.nextUrl.searchParams.get("key") ?? req.headers.get("x-cron-key");
+  if (CRON_SECRET && !isDev && auth !== CRON_SECRET) {
       return NextResponse.json({ error: "forbidden" }, { status: 403 });
     }
 
@@ -109,14 +115,16 @@ export async function GET(req: NextRequest) {
     const now = new Date();
     const year = now.getUTCFullYear();
 
-    const sessions = await of1("/sessions", { year });
+  const sessions = await of1("/sessions", { year });
+  const daysParam = Number(req.nextUrl.searchParams.get("days") ?? 3);
+  const days = Number.isFinite(daysParam) ? Math.max(1, Math.min(60, daysParam)) : 3;
     const recent = (sessions as any[])
       .filter(s => s.session_key && s.meeting_key)
       .filter(s => {
         const ds = s.date_start ? Date.parse(s.date_start) : 0;
         const de = s.date_end ? Date.parse(s.date_end) : 0;
-        const threeDays = 3 * 24 * 3600 * 1000;
-        return Math.abs((de || ds) - now.getTime()) < threeDays;
+  const windowMs = days * 24 * 3600 * 1000;
+  return Math.abs((de || ds) - now.getTime()) < windowMs;
       })
       .sort((a,b) => (a.session_key as number) - (b.session_key as number))
       .slice(-4);
@@ -152,10 +160,10 @@ export async function GET(req: NextRequest) {
     const drivers = await of1("/drivers", { year });
     for (const d of drivers as any[]) {
       await sql`
-        insert into openf1_drivers (driver_number, driver_id, full_name, name_acronym, team_name)
-        values (${d.driver_number}, ${d.driver_id ?? null}, ${d.full_name ?? null}, ${d.name_acronym ?? null}, ${d.team_name ?? null})
+        insert into openf1_drivers (driver_number, driver_id, full_name, name_acronym, team_name, country_code, country_name)
+        values (${d.driver_number}, ${d.driver_id ?? null}, ${d.full_name ?? null}, ${d.name_acronym ?? null}, ${d.team_name ?? null}, ${d.country_code ?? null}, ${d.country_name ?? null})
         on conflict (driver_number) do update set driver_id=excluded.driver_id, full_name=excluded.full_name,
-          name_acronym=excluded.name_acronym, team_name=excluded.team_name;
+          name_acronym=excluded.name_acronym, team_name=excluded.team_name, country_code=excluded.country_code, country_name=excluded.country_name;
       `;
     }
 
@@ -212,7 +220,7 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    return NextResponse.json({ ok: true, recent_sessions: recent.length, pos_upserts: posInserts, weather_upserts: weatherUpserts });
+  return NextResponse.json({ ok: true, recent_sessions: recent.length, days_window: days, pos_upserts: posInserts, weather_upserts: weatherUpserts });
   } catch (err: any) {
     return NextResponse.json({ error: err?.message ?? String(err) }, { status: 500 });
   }
