@@ -1,14 +1,5 @@
 {
-  "builds": [
-    {
-      "src": "apps/web/next.config.ts",
-      "use": "@vercel/next",
-      "config": {
-        "maxDuration": 300,
-        "memory": 4096
-      }
-    }
-  ],
+  "version": 2,
   "env": {
     "NODE_OPTIONS": "--max-old-space-size=4096"
   },
