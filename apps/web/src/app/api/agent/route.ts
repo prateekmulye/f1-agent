@@ -2,9 +2,10 @@
  * Agent API (POST /api/agent)
  *
  * Overview
- * - Lightweight F1 expert using Groq Llama 3.1 with two tools: get_prediction and run_eval.
+ * - Advanced F1 expert using Groq Llama 3.3 70B with two tools: get_prediction and run_eval.
+ * - Enhanced with 2025 season knowledge and improved reasoning capabilities.
  * - Answers general questions directly; invokes tools only for predictions/evals.
- * - Normalizes free-form inputs (e.g., “Lando Norris”, “British GP 2024”) to internal ids.
+ * - Normalizes free-form inputs (e.g., "Lando Norris", "British GP 2024") to internal ids.
  *
  * Approach
  * - Small, dependency-free normalization via bundled JSON lists of drivers and races.
@@ -78,8 +79,8 @@ function normalizeRaceId(input?: string | null): string | undefined {
   if (!input) return undefined;
   const s = clean(String(input)).trim();
   if (!s) return undefined;
-  // If already an id like 2024_gbr
-  if (/^\d{4}_[a-z]{3}$/i.test(s)) return s;
+  // If already an id like 2024_gbr or 2025_singapore
+  if (/^\d{4}_[a-z]+$/i.test(s)) return s;
   const lower = s.toLowerCase();
   // Remove year tokens and words like grand prix
   const cleaned = lower.replace(/\b(19|20)\d{2}\b/g, "").replace(/grand\s+prix|gp/g, "").trim();
@@ -136,7 +137,7 @@ const runEval = tool(
 const tools = [getPrediction, runEval];
 
 const model = new ChatGroq({
-  model: "llama-3.1-8b-instant",
+  model: "llama-3.3-70b-versatile",
   apiKey: process.env.GROQ_API_KEY,
   temperature: 0.2,
 }).bindTools(tools);
@@ -144,13 +145,15 @@ const model = new ChatGroq({
 // ---------- Node: tool-call loop ----------
 async function respond(state: GraphState) {
   const sys = [
-    "You are an Formula 1 (F1) expert.",
-    "For general questions, answer directly without tools.",
-    "When the user asks about odds/probability/chance/likelihood/% for a driver and a race, CALL the get_prediction tool.",
-    "Map natural inputs to: race_id like 2024_gbr and driver_id like LEC, NOR, VER.",
-    "If either id is missing or ambiguous, ask ONE concise clarifying question and then call the tool.",
+    "You are an Formula 1 (F1) expert with comprehensive knowledge of the 2025 season.",
+    "Current context: It's September 2025. The 2025 F1 season is well underway with regulatory changes and driver lineup updates.",
+    "For general questions about F1 news, standings, regulations, or season updates, answer directly using your knowledge.",
+    "When users ask about odds/probability/chance/likelihood/% for a driver and a race, CALL the get_prediction tool.",
+    "Map natural inputs to: race_id like 2025_singapore (for 2025 races) or 2024_gbr (for historical), and driver_id like LEC, NOR, VER.",
+    "Stay current with 2025 championship standings, driver transfers, team performance, and regulatory changes.",
+    "If either id is missing or ambiguous for predictions, ask ONE concise clarifying question then call the tool.",
     "Available tools: get_prediction, run_eval. Do not invent other tools (e.g., search).",
-    "Keep answers concise, factual, and cite data sources briefly (OpenF1 for live signals).",
+    "Keep answers concise, factual, and cite data sources briefly (OpenF1 for live signals, official F1 sources for standings).",
   ].join(" ");
   const messages: BaseMessageLike[] = [
     { role: "system", content: sys },
