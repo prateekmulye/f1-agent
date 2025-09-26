@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import F1ThemeProvider from '@/providers/ThemeProvider';
 import PulseOnLoad from "@/components/PulseOnLoad";
 import { Analytics } from "@vercel/analytics/next";
+import '@/styles/globals.css';
 
 export const metadata: Metadata = {
   title: 'Slipstream - Formula 1 AI Intelligence Platform',
