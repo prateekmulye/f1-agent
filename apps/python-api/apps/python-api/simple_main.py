@@ -308,7 +308,7 @@ async def get_standings(season: int = 2025):
         ],
         "constructor_standings": [
             {"position": i+1, "team": team["name"], "points": team["points"]}
-            for i, team in enumerate(MOCK_TEAMS)
+            for i, team in enumerate(TEAMS_2025)
         ]
     }
 

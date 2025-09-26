@@ -2,9 +2,11 @@
 Data Controller - API endpoints for data synchronization and external APIs
 """
 from typing import Dict, Any
+from datetime import datetime
 from fastapi import APIRouter, HTTPException, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.services.data_service import DataService
+from app.services.data_loader import DataLoaderService
 from app.services.auth_service import AuthService
 from app.controllers.auth_controller import get_current_user, get_admin_user
 from app.models.f1_models import User
@@ -18,6 +20,11 @@ data_router = APIRouter(prefix="/api/v1/data", tags=["Data Management"])
 async def get_data_service(db: AsyncSession = Depends(get_database)) -> DataService:
     """Get data service instance"""
     return DataService(db)
+
+
+async def get_data_loader(db: AsyncSession = Depends(get_database)) -> DataLoaderService:
+    """Get data loader service instance"""
+    return DataLoaderService(db)
 
 
 @data_router.get(
@@ -261,3 +268,30 @@ async def check_external_apis(
             "overall_status": "degraded",
             "checked_at": "2025-09-25T00:00:00Z"
         }
+
+
+@data_router.post(
+    "/load/json",
+    summary="Load data from JSON files",
+    description="Load drivers and races from JSON files into database"
+)
+@apply_rate_limit("data")
+async def load_json_data(
+    data_loader: DataLoaderService = Depends(get_data_loader)
+):
+    """Load data from JSON files to database"""
+    try:
+        drivers_loaded = await data_loader.load_drivers_to_db()
+        races_loaded = await data_loader.load_races_to_db()
+
+        return {
+            "message": "JSON data loaded successfully",
+            "drivers_loaded": drivers_loaded,
+            "races_loaded": races_loaded,
+            "loaded_at": datetime.now().isoformat()
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error loading JSON data: {str(e)}"
+        )

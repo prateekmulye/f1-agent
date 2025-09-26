@@ -10,6 +10,7 @@ from app.schemas.f1_schemas import (
     DriverResponse, TeamResponse, RaceResponse,
     StandingsResponse, DriverStandingBase, ConstructorStandingBase
 )
+from app.services.data_loader import DataLoaderService
 
 
 class F1Service:
@@ -17,30 +18,11 @@ class F1Service:
 
     def __init__(self, db_session: AsyncSession):
         self.db = db_session
+        self.data_loader = DataLoaderService(db_session)
 
     async def get_drivers(self, season: int = 2025) -> List[DriverResponse]:
-        """Get all drivers for a season"""
-        query = (
-            select(Driver)
-            .where(Driver.season == season)
-            .order_by(Driver.constructor, Driver.name)
-        )
-        result = await self.db.execute(query)
-        drivers = result.scalars().all()
-
-        return [
-            DriverResponse(
-                id=driver.id,
-                code=driver.code,
-                name=driver.name,
-                constructor=driver.constructor,
-                number=driver.number,
-                nationality=driver.nationality,
-                flag=driver.flag,
-                constructorPoints=driver.constructor_points
-            )
-            for driver in drivers
-        ]
+        """Get all drivers for a season with JSON fallback"""
+        return await self.data_loader.get_drivers_with_fallback(season)
 
     async def get_driver_by_id(self, driver_id: str, season: int = 2025) -> Optional[DriverResponse]:
         """Get a specific driver by ID"""
@@ -63,28 +45,8 @@ class F1Service:
         )
 
     async def get_teams(self, season: int = 2025) -> List[TeamResponse]:
-        """Get all teams for a season"""
-        query = (
-            select(Team)
-            .where(Team.season == season)
-            .order_by(Team.position)
-        )
-        result = await self.db.execute(query)
-        teams = result.scalars().all()
-
-        return [
-            TeamResponse(
-                id=team.id,
-                name=team.name,
-                position=team.position,
-                points=team.points,
-                driverCount=team.driver_count,
-                drivers=team.drivers,
-                driverCodes=team.driver_codes,
-                colors=team.colors
-            )
-            for team in teams
-        ]
+        """Get all teams for a season with JSON fallback"""
+        return await self.data_loader.get_teams_with_fallback(season)
 
     async def get_team_by_id(self, team_id: str, season: int = 2025) -> Optional[TeamResponse]:
         """Get a specific team by ID"""
@@ -107,26 +69,8 @@ class F1Service:
         )
 
     async def get_races(self, season: int = 2025) -> List[RaceResponse]:
-        """Get all races for a season"""
-        query = (
-            select(Race)
-            .where(Race.season == season)
-            .order_by(Race.round)
-        )
-        result = await self.db.execute(query)
-        races = result.scalars().all()
-
-        return [
-            RaceResponse(
-                id=race.id,
-                name=race.name,
-                season=race.season,
-                round=race.round,
-                date=race.date,
-                country=race.country
-            )
-            for race in races
-        ]
+        """Get all races for a season with JSON fallback"""
+        return await self.data_loader.get_races_with_fallback(season)
 
     async def get_race_by_id(self, race_id: str) -> Optional[RaceResponse]:
         """Get a specific race by ID"""
