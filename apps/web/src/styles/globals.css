@@ -12,9 +12,11 @@ html {
   scrollbar-color: rgba(255, 255, 255, 0.2) rgba(255, 255, 255, 0.05);
 }
 
-/* Global transitions for all interactive elements */
+/* Optimized transitions for Safari performance */
 * {
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 /* Smooth focus transitions */
@@ -221,5 +223,53 @@ img, video {
 @media (prefers-color-scheme: dark) {
   :root {
     color-scheme: dark;
+  }
+}
+
+/* Safari-specific optimizations for MacBook Air 13" */
+@supports (-webkit-appearance: none) {
+  /* Enable hardware acceleration for smooth scrolling */
+  * {
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+  }
+
+  /* Optimize backdrop filters for Safari */
+  .MuiPaper-root {
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
+  }
+
+  /* Better scroll performance in Safari */
+  .custom-scrollbar {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Force GPU acceleration for smooth animations */
+  button,
+  .MuiButton-root,
+  .MuiIconButton-root,
+  .MuiChip-root {
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* MacBook Air 13" specific viewport optimizations */
+@media screen and (max-width: 1440px) and (max-height: 900px) {
+  /* Optimize layout for smaller screens */
+  .MuiContainer-root {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  /* Reduce component spacing for better fit */
+  .MuiGrid-item {
+    padding: 8px !important;
+  }
+
+  /* Optimize table cell padding */
+  .MuiTableCell-root {
+    padding: 8px 12px !important;
   }
 }
