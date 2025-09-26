@@ -1,23 +1,19 @@
 /**
  * Drivers API (GET /api/drivers)
- * Returns all drivers with their current teams and stats
+ * Returns all drivers with their current teams
  */
-import { sql } from "@/lib/db";
+import { readFileSync } from 'fs';
+import { join } from 'path';
 
 export async function GET() {
   try {
-    // Get all drivers with their current constructor
-    const drivers = await sql`
-      SELECT
-        id,
-        code,
-        name,
-        constructor
-      FROM drivers
-      ORDER BY constructor, name
-    `;
+    // Read the JSON file dynamically
+    const filePath = join(process.cwd(), 'data/drivers.json');
+    const fileContents = readFileSync(filePath, 'utf8');
+    const driversData = JSON.parse(fileContents);
 
-    return Response.json(drivers);
+    // Return the JSON driver data directly
+    return Response.json(driversData);
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error("/api/drivers error:", msg);

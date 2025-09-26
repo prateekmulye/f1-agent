@@ -19,8 +19,8 @@ import { tool } from "@langchain/core/tools";
 import { StateGraph, START, END, Annotation } from "@langchain/langgraph";
 import type { BaseMessageLike } from "@langchain/core/messages";
 import { ToolMessage } from "@langchain/core/messages";
-import driversData from "../../../../data/drivers.json" assert { type: "json" };
-import racesData from "../../../../data/races.json" assert { type: "json" };
+import { readFileSync } from 'fs';
+import { join } from 'path';
 
 const buckets = new Map<string, { tokens: number; ts: number }>();
 function allow(ip: string, rate = 30, perMs = 60_000) {
@@ -43,8 +43,30 @@ type GraphState = typeof State.State;
 
 type DriverRec = { id: string; code: string; name: string };
 type RaceRec = { id: string; name: string };
-const DRIVERS: DriverRec[] = (driversData as any) as DriverRec[];
-const RACES: RaceRec[] = (racesData as any) as RaceRec[];
+
+// Load data dynamically
+const loadDriversData = (): DriverRec[] => {
+  try {
+    const filePath = join(process.cwd(), 'data/drivers.json');
+    const fileContents = readFileSync(filePath, 'utf8');
+    return JSON.parse(fileContents);
+  } catch {
+    return [];
+  }
+};
+
+const loadRacesData = (): RaceRec[] => {
+  try {
+    const filePath = join(process.cwd(), 'data/races.json');
+    const fileContents = readFileSync(filePath, 'utf8');
+    return JSON.parse(fileContents);
+  } catch {
+    return [];
+  }
+};
+
+const DRIVERS: DriverRec[] = loadDriversData();
+const RACES: RaceRec[] = loadRacesData();
 
 function clean(text: string) {
   // strip punctuation and smart quotes, keep letters/numbers/underscores
