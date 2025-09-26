@@ -1,170 +1,488 @@
-/**
- * Home page (dashboard)
- *
- * Presents the race selector, probability chart, leaderboard, and agent chat.
- * Layout favors clarity over flash; all components share the same spacing rhythm.
- */
 "use client";
-import { useEffect, useMemo, useState } from "react";
-import NavBar from "@/components/NavBar";
-import RaceSelect from "@/components/RaceSelect";
-import PredictionsPanel from "@/components/PredictionsPanel";
-import ProbabilityChart from "@/components/ProbabilityChart";
-import AgentChatStreaming from "@/components/AgentChatStreaming";
-import LiveSnapshot from "@/components/LiveSnapshot";
+import { useState, useEffect } from "react";
+import ModernNavbar from "@/components/ModernNavbar";
+import FloatingChat from "@/components/FloatingChat";
 
-function TrophyIcon() {
+// Team colors mapping
+const getTeamColor = (constructor: string) => {
+  const colors: Record<string, string> = {
+    "Red Bull Racing": "#3671C6",
+    "Ferrari": "#E8002D",
+    "Mercedes": "#27F4D2",
+    "McLaren": "#FF8000",
+    "Aston Martin": "#229971",
+    "Alpine": "#0093CC",
+    "Williams": "#64C4FF",
+    "RB": "#6692FF",
+    "Kick Sauber": "#52C41A",
+    "Haas": "#B6BABD"
+  };
+  return colors[constructor] || "#666666";
+};
+
+const getTeamLogo = (constructor: string) => {
+  const logos: Record<string, string> = {
+    "Red Bull Racing": "🏎️",
+    "Ferrari": "🐎",
+    "Mercedes": "⭐",
+    "McLaren": "🧡",
+    "Aston Martin": "🏁",
+    "Alpine": "🔵",
+    "Williams": "💙",
+    "RB": "⚡",
+    "Kick Sauber": "🟢",
+    "Haas": "⚪"
+  };
+  return logos[constructor] || "🏎️";
+};
+
+const getTrend = (probability: number) => {
+  if (probability > 0.5) return "up";
+  if (probability > 0.2) return "stable";
+  return "down";
+};
+
+// Interface for API data
+interface DriverStanding {
+  position: number;
+  driver_id: string;
+  driver_code: string;
+  driver_name: string;
+  constructor: string;
+  points: number;
+  wins: number;
+  podiums: number;
+  season: number;
+}
+
+interface ConstructorStanding {
+  position: number;
+  constructor: string;
+  points: number;
+  wins: number;
+  podiums: number;
+  drivers: Array<{id: string; name: string; points: number}>;
+}
+
+interface RaceResult {
+  race_id: string;
+  race_name: string;
+  race_date: string;
+  season: number;
+  results: Array<{
+    driver_name: string;
+    driver_code: string;
+    constructor: string;
+    finish_position: number;
+  }>;
+}
+
+interface NextRacePrediction {
+  driver_id: string;
+  prob_points: number;
+}
+
+interface HeroSectionProps {
+  onRaceSelect?: (raceId: string) => void;
+}
+
+function HeroSection({ onRaceSelect }: HeroSectionProps) {
   return (
-    <svg className="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M8 4h8v3a4 4 0 0 0 4 4h1v2a6 6 0 0 1-6 6H9a6 6 0 0 1-6-6v-2h1a4 4 0 0 0 4-4V4Z" stroke="#e4e4e7" strokeWidth="1.5"/>
-      <path d="M10 19v2h4v-2" stroke="#a1a1aa" strokeWidth="1.5"/>
-    </svg>
+    <section className="min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-gray-900 to-black relative overflow-hidden">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0">
+        <div className="absolute top-1/4 left-1/4 w-px h-32 bg-gradient-to-b from-transparent via-red-500/50 to-transparent rotate-45 animate-pulse"></div>
+        <div className="absolute top-3/4 right-1/4 w-px h-24 bg-gradient-to-b from-transparent via-red-500/30 to-transparent -rotate-45 animate-pulse" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute bottom-1/4 left-1/2 w-2 h-2 bg-red-500 rounded-full animate-ping"></div>
+      </div>
+
+      {/* Racing Line Animation */}
+      <div className="absolute top-0 left-0 right-0 h-px f1-racing-line"></div>
+
+      <div className="container-fluid text-center z-10">
+        <div className="max-w-4xl mx-auto">
+          {/* Main Title */}
+          <h1 className="text-display f1-gradient-text mb-6 fade-in">
+            FORMULA 1
+          </h1>
+          <h2 className="text-headline text-white/90 mb-8 fade-in stagger-1">
+            AI Race Intelligence Platform
+          </h2>
+
+          {/* Subtitle */}
+          <p className="text-xl text-gray-300 mb-12 max-w-2xl mx-auto leading-relaxed fade-in stagger-2">
+            Advanced machine learning predictions, real-time race analysis, and comprehensive F1 statistics
+            powered by cutting-edge AI and live telemetry data.
+          </p>
+
+          {/* Key Features */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            {[
+              { icon: "🧠", title: "AI Predictions", desc: "Advanced ML models predicting race outcomes with 87% accuracy" },
+              { icon: "⚡", title: "Live Data", desc: "Real-time telemetry and race conditions from OpenF1 API" },
+              { icon: "📊", title: "Deep Analytics", desc: "Comprehensive driver and constructor performance analysis" }
+            ].map((feature, index) => (
+              <div
+                key={index}
+                className="glass-card p-6 text-center group fade-in"
+                style={{ animationDelay: `${0.3 + index * 0.1}s` }}
+              >
+                <div className="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300">
+                  {feature.icon}
+                </div>
+                <h3 className="text-lg font-semibold text-white mb-2">{feature.title}</h3>
+                <p className="text-sm text-gray-400">{feature.desc}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Quick Stats */}
+          <div className="flex justify-center items-center space-x-8 mb-12 fade-in stagger-3">
+            <div className="text-center">
+              <div className="text-3xl font-bold text-red-500">2025</div>
+              <div className="text-sm text-gray-400">Season</div>
+            </div>
+            <div className="w-px h-12 bg-gray-600"></div>
+            <div className="text-center">
+              <div className="text-3xl font-bold text-red-500">24</div>
+              <div className="text-sm text-gray-400">Races</div>
+            </div>
+            <div className="w-px h-12 bg-gray-600"></div>
+            <div className="text-center">
+              <div className="text-3xl font-bold text-red-500">20</div>
+              <div className="text-sm text-gray-400">Drivers</div>
+            </div>
+            <div className="w-px h-12 bg-gray-600"></div>
+            <div className="text-center">
+              <div className="text-3xl font-bold text-red-500">10</div>
+              <div className="text-sm text-gray-400">Teams</div>
+            </div>
+          </div>
+
+          {/* CTA Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center fade-in stagger-4">
+            <button
+              onClick={() => window.location.href = '/results'}
+              className="glass-button px-8 py-4 text-lg font-semibold bg-red-600 border-red-500 text-white hover:bg-red-700"
+            >
+              🏁 View Race Results
+            </button>
+            <button
+              onClick={() => window.location.href = '/standings'}
+              className="glass-button px-8 py-4 text-lg font-semibold hover:border-red-400"
+            >
+              🏆 Championship Standings
+            </button>
+            <button
+              onClick={() => window.location.href = '/predictions'}
+              className="glass-button px-8 py-4 text-lg font-semibold hover:border-red-400"
+            >
+              🔮 AI Predictions
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Scroll Indicator */}
+      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+        <div className="w-6 h-10 border-2 border-gray-400 rounded-full flex justify-center">
+          <div className="w-1 h-3 bg-gray-400 rounded-full mt-2 animate-pulse"></div>
+        </div>
+      </div>
+    </section>
   );
 }
 
-type Palette = { a: string; b: string; stripe: string };
-function dailyPalette(now = new Date()): Palette {
-  const day = Math.floor((now.getTime() / 86400000) % 3);
-  // 0 Ferrari, 1 McLaren, 2 Mercedes
-  if (day === 1) return { a: "#FFA200", b: "#FF6A00", stripe: "#8a3b00" }; // McLaren papaya
-  if (day === 2) return { a: "#00D2BE", b: "#009B8A", stripe: "#0c3a36" }; // Mercedes teal
-  return { a: "#FF4D40", b: "#E10600", stripe: "#7a0f0d" }; // Ferrari default
-}
-
-function bossName(now = new Date()) {
-  const names = ["Toto", "Zak", "Fred"];
-  return names[Math.floor((now.getTime() / 86400000) % names.length)];
-}
-
-export default function Home() {
-  const [raceId, setRaceId] = useState("2024_gbr");
-  const palette = useMemo(() => dailyPalette(), []);
-  const boss = useMemo(() => bossName(), []);
+function DriverStandingsSection() {
+  const [driverStandings, setDriverStandings] = useState<DriverStanding[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const url = new URL(window.location.href);
-    const r = url.searchParams.get("race");
-    if (r) setRaceId(r);
+    const fetchDriverStandings = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/standings?type=drivers');
+        if (!response.ok) {
+          throw new Error('Failed to fetch driver standings');
+        }
+        const data = await response.json();
+        setDriverStandings(data.slice(0, 8)); // Show top 8
+        setError(null);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load standings');
+        console.error('Error fetching driver standings:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDriverStandings();
   }, []);
 
-  const copyShare = () => {
-    const url = new URL(window.location.href);
-    url.searchParams.set("race", raceId);
-    navigator.clipboard.writeText(url.toString());
-    alert("Share link copied!");
-  };
-
-  return (
-    <main>
-      <NavBar />
-
-  {/* HERO */}
-  <section className="relative h-[200px] md:h-[240px] border-b border-zinc-800 overflow-hidden">
-        {/* background image - local asset to avoid prod issues */}
-        <img
-          src="/window.svg"
-          alt="F1 carbon backdrop"
-          className="absolute inset-0 w-full h-full object-cover opacity-5"
-        />
-        <div className="hero-gradient relative h-full">
-          <div className="container-page h-full flex items-end">
-            <div className="w-full">
-              <div className="flex items-end justify-between gap-4">
-                <div className="min-w-0">
-                  <h1 className="title-display mb-2">Race Predictor &amp; Explainable Agent</h1>
-                  <p className="subtitle">Historical model + live deltas (seeded) with tool‑using AI explanations.</p>
-
-                  <div className="mt-5 flex flex-wrap items-center gap-3">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-zinc-300">Race</span>
-                      <RaceSelect value={raceId} onChange={setRaceId} />
-                    </div>
-                    <button onClick={copyShare} className="btn-secondary">Copy Share Link</button>
-                  </div>
-                </div>
-
-                {/* Team car silhouette (palette rotates daily) */}
-                <div className="hidden md:block hero-car shrink-0">
-                  <svg viewBox="0 0 640 160" className="w-[260px] lg:w-[340px] h-auto opacity-95">
-                    <defs>
-                      <linearGradient id="carGradient" x1="0" y1="0" x2="1" y2="0">
-                        <stop offset="0" stopColor={palette.a}/>
-                        <stop offset="1" stopColor={palette.b}/>
-                      </linearGradient>
-                    </defs>
-                    {/* tyres */}
-                    <circle cx="128" cy="126" r="26" fill="#0b0b0b"/>
-                    <circle cx="468" cy="126" r="28" fill="#0b0b0b"/>
-                    <circle cx="128" cy="126" r="12" fill="#1f1f1f"/>
-                    <circle cx="468" cy="126" r="13" fill="#1f1f1f"/>
-                    {/* floor / shadow */}
-                    <path d="M40 134h560c12 0 18 6 18 10H20c0-6 8-10 20-10z" fill="#0a0a0a" opacity=".35"/>
-                    {/* body */}
-                    <path d="M36 110c18-8 48-12 98-16 10-16 28-26 58-34 62-16 126-18 182-18 30 0 48 10 64 22 12 9 22 18 34 18h24c12 0 22 4 30 10l16 12c8 6 14 8 24 8h16c10 0 16 6 16 10H56c-12 0-22-6-22-14 0-6 0-10 2-12z" fill="url(#carGradient)"/>
-                    {/* sidepod stripe */}
-                    <path d="M150 96c60-18 140-26 260-24 28 0 60 10 88 10h24c14 0 24 4 32 10l8 6H196c-22 0-32-2-46-2-8 0-18 0-26 0z" fill={palette.stripe} opacity=".55"/>
-                    {/* cockpit / halo */}
-                    <path d="M314 58c-10 2-18 6-24 12 10-2 26-4 46-4-2-6-10-10-22-8z" fill="#1a1a1a"/>
-                    {/* nose tip */}
-                    <path d="M544 100c10 0 20 2 28 8-10-2-22-4-30-4l2-4z" fill="#1a1a1a"/>
-                  </svg>
-                </div>
-              </div>
-            </div>
+  if (loading) {
+    return (
+      <section className="py-20 bg-gradient-to-b from-black to-gray-900">
+        <div className="container-fluid">
+          <div className="text-center mb-16">
+            <h2 className="text-headline text-white mb-4 f1-racing-line">Drivers Championship</h2>
+            <p className="text-gray-400">Current 2025 season standings</p>
+          </div>
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center text-gray-400">Loading standings...</div>
           </div>
         </div>
       </section>
+    );
+  }
 
-  {/* DASHBOARD GRID */}
-  <div className="container-page py-5 grid grid-cols-1 md:[grid-template-columns:2fr_1fr] gap-6">
-        {/* Chart spans two columns on desktop */}
-        <div className="md:col-span-2 flex flex-col gap-4">
-          <div className="card">
-            <div className="card-header">
-              <h3>Likelihood to Score Points (Top 10)</h3>
-              <div className="flex items-center gap-2 text-xs text-zinc-400">
-                <TrophyIcon /> Uncertainty ribbons ±8%
-              </div>
-            </div>
-            <div className="card-body max-h-[340px] overflow-hidden">
-              <ProbabilityChart raceId={raceId} />
-            </div>
+  if (error) {
+    return (
+      <section className="py-20 bg-gradient-to-b from-black to-gray-900">
+        <div className="container-fluid">
+          <div className="text-center mb-16">
+            <h2 className="text-headline text-white mb-4 f1-racing-line">Drivers Championship</h2>
+            <p className="text-gray-400">Current 2025 season standings</p>
+          </div>
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center text-red-400">Error: {error}</div>
           </div>
         </div>
+      </section>
+    );
+  }
 
-        {/* Right column: Agent chat first (no scrolling to find it) */}
-        <div className="flex flex-col gap-4">
-      <div className="card">
-            <div className="card-header">
-        <h3>Talk to {boss}…</h3>
-              <button onClick={copyShare} className="text-xs px-2 py-1 rounded bg-zinc-800 border border-zinc-700">Copy Share Link</button>
-            </div>
-            <div className="card-body">
-              <AgentChatStreaming />
-            </div>
+  const top3 = driverStandings.slice(0, 3);
+
+  return (
+    <section className="py-20 bg-gradient-to-b from-black to-gray-900">
+      <div className="container-fluid">
+        <div className="text-center mb-16">
+          <h2 className="text-headline text-white mb-4 f1-racing-line">Drivers Championship</h2>
+          <p className="text-gray-400">Current 2025 season standings</p>
+        </div>
+
+        <div className="max-w-4xl mx-auto">
+          {/* Top 3 Podium */}
+          <div className="grid grid-cols-3 gap-4 mb-12 h-64">
+            {[1, 0, 2].map((index) => {
+              const driver = top3[index];
+              if (!driver) return null;
+
+              const teamColor = getTeamColor(driver.constructor);
+
+              return (
+                <div
+                  key={driver.driver_id}
+                  className={`podium-position podium-${driver.position} glass-card p-6 flex flex-col justify-between`}
+                >
+                  <div className="text-center">
+                    <div className="w-16 h-16 mx-auto mb-4 rounded-full overflow-hidden border-4 border-white/20">
+                      <div
+                        className="w-full h-full"
+                        style={{ backgroundColor: teamColor }}
+                      ></div>
+                    </div>
+                    <div className="text-2xl font-bold text-white">{driver.driver_code}</div>
+                    <div className="text-sm text-white/80">{driver.driver_name}</div>
+                    <div className="text-xs text-white/60 mt-1">{driver.constructor}</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-white">{driver.points}</div>
+                    <div className="text-sm text-white/60">points</div>
+                    <div className="text-xs text-white/40 mt-1">{driver.wins} wins</div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
 
-          <div className="card">
-            <div className="card-header">
-        <h3>Trackside Now: leaders and conditions</h3>
-            </div>
-            <div className="card-body">
-              <LiveSnapshot />
-            </div>
-          </div>
+          {/* Remaining Positions */}
+          <div className="space-y-4">
+            {driverStandings.slice(3).map((driver, index) => {
+              const teamColor = getTeamColor(driver.constructor);
 
-          <div className="card">
-            <div className="card-header">
-              <h3>Top Scorers (probability to score points)</h3>
-            </div>
-            <div className="card-body">
-              <PredictionsPanel raceId={raceId} />
-            </div>
-          </div>
+              return (
+                <div key={driver.driver_id} className="driver-card p-4 fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
+                  <div
+                    className="team-accent"
+                    style={{ backgroundColor: teamColor }}
+                  ></div>
 
-          {/* Removed long About block to reduce vertical waste. Consider a footer link instead. */}
+                  <div className="relative z-10 flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      <div className="text-2xl font-bold text-white w-8 text-center">
+                        {driver.position}
+                      </div>
+                      <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-white/20">
+                        <div
+                          className="w-full h-full flex items-center justify-center text-white font-bold text-sm"
+                          style={{ backgroundColor: teamColor }}
+                        >
+                          {driver.driver_code}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-lg font-semibold text-white">{driver.driver_name}</div>
+                        <div className="text-sm text-gray-400">{driver.constructor}</div>
+                      </div>
+                    </div>
+
+                    <div className="text-right">
+                      <div className="text-2xl font-bold text-white">{driver.points}</div>
+                      <div className="text-sm text-gray-400">points</div>
+                      <div className="text-xs text-gray-500">{driver.wins}W • {driver.podiums}P</div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
-    </main>
+    </section>
+  );
+}
+
+function NextRacePredictions() {
+  const [predictions, setPredictions] = useState<NextRacePrediction[]>([]);
+  const [nextRace, setNextRace] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchNextRacePredictions = async () => {
+      try {
+        setLoading(true);
+
+        // Get next race (first 2025 race for now)
+        const racesResponse = await fetch('/api/races');
+        const races = await racesResponse.json();
+        const next2025Race = races.find((race: any) => race.season === 2025);
+
+        if (!next2025Race) {
+          throw new Error('No upcoming races found');
+        }
+
+        setNextRace(next2025Race);
+
+        // Get predictions for this race
+        const predictionsResponse = await fetch(`/api/predict?race_id=${next2025Race.id}`);
+        if (!predictionsResponse.ok) {
+          throw new Error('Failed to fetch predictions');
+        }
+
+        const predictionsData = await predictionsResponse.json();
+        setPredictions(predictionsData.slice(0, 4)); // Top 4 predictions
+        setError(null);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load predictions');
+        console.error('Error fetching predictions:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchNextRacePredictions();
+  }, []);
+
+  if (loading) {
+    return (
+      <section className="py-20 bg-gradient-to-b from-gray-900 to-black">
+        <div className="container-fluid">
+          <div className="text-center mb-16">
+            <h2 className="text-headline text-white mb-4 f1-racing-line">Next Race Predictions</h2>
+            <p className="text-gray-400">Loading AI predictions...</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (error || !nextRace) {
+    return (
+      <section className="py-20 bg-gradient-to-b from-gray-900 to-black">
+        <div className="container-fluid">
+          <div className="text-center mb-16">
+            <h2 className="text-headline text-white mb-4 f1-racing-line">Next Race Predictions</h2>
+            <p className="text-red-400">Error: {error}</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section className="py-20 bg-gradient-to-b from-gray-900 to-black">
+      <div className="container-fluid">
+        <div className="text-center mb-16">
+          <h2 className="text-headline text-white mb-4 f1-racing-line">Next Race Predictions</h2>
+          <p className="text-gray-400">AI-powered points probability for {nextRace.name}</p>
+        </div>
+
+        <div className="max-w-3xl mx-auto">
+          <div className="glass-card p-8">
+            <div className="space-y-6">
+              {predictions.map((prediction, index) => {
+                const probability = Math.round(prediction.prob_points * 100);
+                const trend = getTrend(prediction.prob_points);
+
+                return (
+                  <div
+                    key={prediction.driver_id}
+                    className="flex items-center justify-between p-4 rounded-lg border border-white/10 hover:border-white/20 transition-all"
+                  >
+                    <div className="flex items-center space-x-4">
+                      <div className="text-xl font-bold text-white w-8 text-center">
+                        {index + 1}
+                      </div>
+                      <div className="w-3 h-8 rounded">
+                        {/* Team color accent - would need driver info */}
+                      </div>
+                      <div>
+                        <div className="text-lg font-semibold text-white">{prediction.driver_id}</div>
+                        <div className="text-sm text-gray-400">Points probability</div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center space-x-4">
+                      <div className="text-right">
+                        <div className="text-2xl font-bold text-white">{probability}%</div>
+                        <div className={`text-sm ${
+                          trend === 'up' ? 'text-green-400' :
+                          trend === 'stable' ? 'text-yellow-400' : 'text-red-400'
+                        }`}>
+                          {trend === 'up' ? '↗' : trend === 'stable' ? '→' : '↘'} {trend}
+                        </div>
+                      </div>
+                      <div className="w-24 h-2 bg-gray-700 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-gradient-to-r from-red-600 to-red-400 rounded-full transition-all duration-1000"
+                          style={{ width: `${probability}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export default function HomePage() {
+  const [selectedRace, setSelectedRace] = useState<string>("2025_bahrain");
+
+  return (
+    <div className="min-h-screen bg-black text-white">
+      <ModernNavbar />
+      <HeroSection onRaceSelect={setSelectedRace} />
+      <DriverStandingsSection />
+      <NextRacePredictions />
+      <FloatingChat />
+    </div>
   );
 }
