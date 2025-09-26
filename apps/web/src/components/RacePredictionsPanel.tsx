@@ -26,6 +26,7 @@ import {
   ExpandMore,
 } from '@mui/icons-material';
 import { f1Colors, getTeamColorByConstructor } from '@/theme/f1Theme';
+import { apiGet } from '@/lib/api';
 
 interface Race {
   id: string;
@@ -101,13 +102,10 @@ export default function RacePredictionsPanel() {
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
-        const [racesRes, driversRes] = await Promise.all([
-          fetch('/api/races'),
-          fetch('/api/drivers')
+        const [racesData, driversData] = await Promise.all([
+          apiGet('races'),
+          apiGet('drivers')
         ]);
-
-        const racesData = await racesRes.json();
-        const driversData = await driversRes.json();
 
         // Filter to 2025 races and sort by date
         const races2025 = racesData
@@ -146,17 +144,8 @@ export default function RacePredictionsPanel() {
 
       try {
         // Fetch real predictions from the API
-        const predictionsRes = await fetch(`/api/predict?race_id=${selectedRaceId}`);
-        let predictions: PredictionResult[] = [];
-
-        if (predictionsRes.ok) {
-          predictions = await predictionsRes.json();
-          console.log('Predictions received:', predictions.length, 'predictions');
-        } else {
-          console.warn('Predictions API failed, status:', predictionsRes.status);
-          setError('Prediction service unavailable');
-          return;
-        }
+        const predictions: PredictionResult[] = await apiGet(`predictions/race/${selectedRaceId}`);
+        console.log('Predictions received:', predictions.length, 'predictions');
 
         // Filter out predictions for non-2025 drivers
         const validDriverCodes = drivers.map(d => d.code);

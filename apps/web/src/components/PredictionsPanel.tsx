@@ -1,16 +1,24 @@
 /**
  * PredictionsPanel
  *
- * Simple list representation of top-10 probabilities from /api/predict.
+ * Simple list representation of top-10 probabilities from the Python backend predictions API.
  */
 "use client";
 import { useEffect, useState } from "react";
+import { apiGet } from "@/lib/api";
 
 type Row = { driver_id: string; prob_points: number; score: number };
 
 export default function PredictionsPanel({ raceId }: { raceId: string }) {
   const [rows, setRows] = useState<Row[]>([]);
-  useEffect(() => { fetch(`/api/predict?race_id=${raceId}`).then(r=>r.json()).then(setRows); }, [raceId]);
+  useEffect(() => {
+    apiGet(`predictions/race/${raceId}`)
+      .then(setRows)
+      .catch(err => {
+        console.error('Failed to load predictions:', err);
+        setRows([]);
+      });
+  }, [raceId]);
 
   return (
     <ul className="divide-y divide-zinc-800">

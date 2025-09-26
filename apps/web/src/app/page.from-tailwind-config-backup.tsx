@@ -8,6 +8,7 @@ import RaceSelect from "@/components/RaceSelect";
 import ProbabilityChart from "@/components/ProbabilityChart";
 import PredictionsPanel from "@/components/PredictionsPanel";
 import AgentChat from "@/components/AgentChat";
+import { apiGet } from "@/lib/api";
 
 type Factor = { feature: string; contribution: number };
 type Row = { driver_id: string; prob_points: number; score: number; top_factors?: Factor[] };
@@ -68,7 +69,12 @@ export default function BackupHome() {
   const [rows, setRows] = useState<Row[]>([]);
 
   useEffect(() => {
-    fetch(`/api/predict?race_id=${raceId}`).then((r) => r.json()).then(setRows);
+    apiGet(`predictions/race/${raceId}`)
+      .then(setRows)
+      .catch(err => {
+        console.error('Failed to load predictions:', err);
+        setRows([]);
+      });
   }, [raceId]);
 
   const top = rows[0];

@@ -2,11 +2,12 @@
  * ProbabilityChart
  *
  * Visualizes top-10 probability-to-score using bands for uncertainty.
- * Fetches data from /api/predict and renders an area chart via Recharts.
+ * Fetches data from Python API and renders an area chart via Recharts.
  */
 "use client";
 import { useEffect, useState } from "react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { apiGet } from "@/lib/api";
 
 type Row = {
     driver_id: string;
@@ -15,10 +16,10 @@ type Row = {
 
 export default function ProbabilityChart({ raceId }: { raceId: string }) {
     const [rows, setRows] = useState<Row[]>([]);
-    useEffect(() => { 
-        fetch(`/api/predict?race_id=${raceId}`)
-        .then(r=>r.json())
-        .then(setRows); }, [raceId]);
+    useEffect(() => {
+        apiGet(`predictions/race/${raceId}`)
+        .then(setRows)
+        .catch(() => setRows([])); }, [raceId]);
 
     const data = rows.slice(0,10).map((r)=>({
         name: r.driver_id,

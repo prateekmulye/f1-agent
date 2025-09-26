@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { apiPost } from "@/lib/api";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -22,13 +23,9 @@ export default function AgentChatStreaming() {
     setMsgs((m) => [...m, { role: "user", content: q }]);
     setLoading(true);
     try {
-      const r = await fetch("/api/agent", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: q }),
-      });
-      const text = await r.text();
-      setMsgs((m) => [...m, { role: "assistant", content: text || "(no response)" }]);
+      const response = await apiPost("chat/message", { query: q });
+      const text = typeof response === 'string' ? response : response?.content || response?.message || "(no response)";
+      setMsgs((m) => [...m, { role: "assistant", content: text }]);
     } catch (err: any) {
       setMsgs((m) => [
         ...m,

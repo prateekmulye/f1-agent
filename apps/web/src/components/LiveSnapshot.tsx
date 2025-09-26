@@ -17,11 +17,10 @@ export default function LiveSnapshot() {
 
   async function load() {
     try {
-      const r = await fetch("/api/data/openf1/latest?limit=1", { cache: "no-store" });
-      if (!r.ok) throw new Error(String(r.status));
-      const arr = await r.json();
-      const first = arr?.[0] ?? null;
-      setData(first ? { positions: first.positions ?? [], weather: first.weather ?? null } : { positions: [], weather: null });
+      // OpenF1 latest endpoint is not available in Python backend
+      // Setting empty data to maintain component compatibility
+      setData({ positions: [], weather: null });
+      setErr("OpenF1 endpoints not available in Python backend");
     } catch (e: any) {
       setErr(e?.message ?? String(e));
     }
@@ -33,22 +32,16 @@ export default function LiveSnapshot() {
     return () => clearInterval(id);
   }, []);
 
-  // load driver lookup from OpenF1 table
+  // OpenF1 drivers endpoint is not available in Python backend
   useEffect(() => {
-    fetch("/api/data/openf1/drivers")
-      .then((r) => (r.ok ? r.json() : []))
-      .then((arr: Array<{ driver_number: number; full_name: string; name_acronym: string; team_name: string; country_code?: string; country_name?: string }>) => {
-        const map: Record<string, { name: string; code: string; constructor: string; country?: string }> = {};
-        for (const d of arr) map[String(d.driver_number)] = { name: d.full_name ?? d.name_acronym, code: d.name_acronym, constructor: d.team_name, country: d.country_code || d.country_name };
-        setDrivers(map);
-      })
-      .catch(() => setDrivers({} as any));
+    // Setting empty drivers data to maintain component compatibility
+    setDrivers({});
   }, []);
 
-  if (err) return <div className="text-xs text-zinc-400">Live snapshot unavailable: {err}. Try running the ingestor at /api/data/openf1 first.</div>;
+  if (err) return <div className="text-xs text-zinc-400">Live snapshot unavailable: {err}</div>;
   if (!data) return <div className="text-xs text-zinc-400">Loading live snapshot…</div>;
   if (!data.positions?.length)
-    return <div className="text-xs text-zinc-400">No positions yet. Run /api/data/openf1 to ingest recent sessions.</div>;
+    return <div className="text-xs text-zinc-400">Live data not available in Python backend</div>;
 
   // Simple helper to guess a flag emoji by ISO country code (no hooks; safe across early returns)
   const flagFor = (numStr: string) => {

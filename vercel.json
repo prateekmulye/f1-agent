@@ -3,7 +3,16 @@
   "env": {
     "NODE_OPTIONS": "--max-old-space-size=4096"
   },
-  "crons": [
-  { "path": "/api/data/openf1/pulse", "schedule": "0 3 * * *" }
+  "builds": [
+    {
+      "src": "apps/web/**",
+      "use": "@vercel/next"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/apps/web/$1"
+    }
   ]
 }

@@ -20,6 +20,7 @@ import {
   Flag as RaceIcon,
 } from '@mui/icons-material';
 import { f1Colors } from '@/theme/f1Theme';
+import { apiPost } from '@/lib/api';
 
 interface Message {
   id: string;
@@ -84,15 +85,8 @@ export default function F1ChatBot() {
     setMessages(prev => [...prev, typingMessage]);
 
     try {
-      const response = await fetch('/api/agent', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ query: text.trim() }),
-      });
-
-      const responseText = await response.text();
+      const response = await apiPost('chat/message', { query: text.trim() });
+      const responseText = typeof response === 'string' ? response : response?.content || response?.message || "Sorry, I couldn't process your request.";
 
       // Remove typing indicator and add actual response
       setMessages(prev => {

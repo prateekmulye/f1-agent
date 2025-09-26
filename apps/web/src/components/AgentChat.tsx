@@ -7,6 +7,7 @@
  */
 "use client";
 import { useEffect, useMemo, useState } from "react";
+import { apiGet } from "@/lib/api";
 
 type Row = { driver_id: string; prob_points: number; score: number };
 
@@ -39,9 +40,12 @@ function DriverAvatar({ code }: { code: string }) {
 export default function PredictionsPanel({ raceId }: { raceId: string }) {
   const [rows, setRows] = useState<Row[]>([]);
   useEffect(() => {
-    fetch(`/api/predict?race_id=${raceId}`)
-      .then((r) => r.json())
-      .then((d: Row[]) => setRows(d));
+    apiGet(`predictions/race/${raceId}`)
+      .then((d: Row[]) => setRows(d))
+      .catch(err => {
+        console.error('Failed to load predictions:', err);
+        setRows([]);
+      });
   }, [raceId]);
 
   const top10 = useMemo(() => rows.slice(0, 10), [rows]);

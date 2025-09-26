@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { apiGet } from "@/lib/api";
 
 type Factor = { feature: string; contribution: number };
 type Explanation = { top_factors: Factor[] };
@@ -9,10 +10,14 @@ export default function WhyDialog({ raceId, driverId}: { raceId: string; driverI
 
   useEffect(() => {
     const fetchExplanation = async () => {
-      const response = await fetch(`/api/explain?raceId=${raceId}&driverId=${driverId}`);
-      const data = await response.json();
-      const parsed = typeof data.explanation === "string" ? JSON.parse(data.explanation) : data.explanation;
-      setExplanation(parsed);
+      try {
+        const data = await apiGet(`explain?raceId=${raceId}&driverId=${driverId}`);
+        const parsed = typeof data.explanation === "string" ? JSON.parse(data.explanation) : data.explanation;
+        setExplanation(parsed);
+      } catch (err) {
+        console.error('Failed to load explanation:', err);
+        setExplanation(null);
+      }
     };
 
     fetchExplanation();

@@ -1,6 +1,7 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
+import { apiPost } from "@/lib/api";
 
 interface Message {
   id: string;
@@ -51,23 +52,12 @@ export default function FloatingChat() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/agent', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ query: text.trim() }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to get AI response');
-      }
-
-      const aiResponse = await response.text();
+      const aiResponse = await apiPost('chat/message', { query: text.trim() });
+      const responseText = typeof aiResponse === 'string' ? aiResponse : aiResponse?.content || aiResponse?.message || "Sorry, I couldn't process your request.";
 
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: aiResponse,
+        text: responseText,
         sender: 'ai',
         timestamp: new Date(),
       };

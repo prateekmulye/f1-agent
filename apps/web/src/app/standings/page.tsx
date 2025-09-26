@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import ModernNavbar from "@/components/ModernNavbar";
 import FloatingChat from "@/components/FloatingChat";
+import { apiGet } from "@/lib/api";
 
 // Team colors mapping
 const getTeamColor = (constructor: string) => {
@@ -73,17 +74,10 @@ export default function StandingsPage() {
         setLoading(true);
         setError(null);
 
-        const [driversResponse, constructorsResponse] = await Promise.all([
-          fetch(`/api/standings?type=drivers&season=${selectedSeason}`),
-          fetch(`/api/standings?type=constructors&season=${selectedSeason}`)
+        const [driversData, constructorsData] = await Promise.all([
+          apiGet(`standings?type=drivers&season=${selectedSeason}`),
+          apiGet(`standings?type=constructors&season=${selectedSeason}`)
         ]);
-
-        if (!driversResponse.ok || !constructorsResponse.ok) {
-          throw new Error('Failed to fetch standings');
-        }
-
-        const driversData = await driversResponse.json();
-        const constructorsData = await constructorsResponse.json();
 
         setDriverStandings(driversData);
         setConstructorStandings(constructorsData);
