@@ -1,9 +1,11 @@
 /**
  * Standings API (GET /api/standings)
- * Returns championship standings (drivers and constructors) with optional season parameter
+ * Returns championship standings (drivers and constructors) with real data from database
  */
 import { NextRequest } from "next/server";
-import { sql } from "@/lib/db";
+import { neon } from '@neondatabase/serverless';
+
+const sql = neon(process.env.NEON_DATABASE_URL!);
 
 // Mock points data based on team performance and predictions
 // In a real scenario, this would come from actual race results
@@ -89,28 +91,77 @@ export async function GET(req: NextRequest) {
     const season = parseInt(searchParams.get("season") || "2025");
     const type = searchParams.get("type") || "drivers"; // 'drivers' or 'constructors'
 
-    // Get all drivers for the specified season
-    const drivers = await sql`
-      SELECT DISTINCT
-        d.id,
-        d.code,
-        d.name,
-        d.constructor
+    if (type === "constructors") {
+      // Get constructor standings from database
+      const constructorStandings = await sql`
+        SELECT
+          ROW_NUMBER() OVER (ORDER BY d.constructor_points DESC) as position,
+          d.constructor as name,
+          d.constructor_points as points,
+          COUNT(*) as driver_count,
+          ARRAY_AGG(d.name ORDER BY d.number) as drivers,
+          ARRAY_AGG(d.code ORDER BY d.number) as driver_codes,
+          ARRAY_AGG(d.flag ORDER BY d.number) as driver_flags,
+          0 as wins,
+          0 as podiums
+        FROM drivers d
+        WHERE d.active = true
+        GROUP BY d.constructor, d.constructor_points
+        ORDER BY d.constructor_points DESC
+      `;
+
+      // Add team colors
+      const teamColors = {
+        'Red Bull Racing': { main: '#1E41FF', light: '#4B6BFF', dark: '#0A2EE6', logo: '🏆' },
+        'McLaren': { main: '#FF8700', light: '#FFB347', dark: '#E6760A', logo: '🧡' },
+        'Ferrari': { main: '#E8002D', light: '#FF4D6D', dark: '#C4002A', logo: '🏎️' },
+        'Mercedes': { main: '#27F4D2', light: '#5EF7DE', dark: '#1DD1B0', logo: '⭐' },
+        'Aston Martin': { main: '#229971', light: '#4CAF50', dark: '#1B7A5A', logo: '💚' },
+        'RB': { main: '#6692FF', light: '#8BB0FF', dark: '#4A7AE6', logo: '🔵' },
+        'Alpine': { main: '#FF87BC', light: '#FFB3D1', dark: '#E665A0', logo: '🇫🇷' },
+        'Williams': { main: '#64C4FF', light: '#8AD4FF', dark: '#4AB8E6', logo: '🔷' },
+        'Haas': { main: '#B6BABD', light: '#D0D3D6', dark: '#9CA0A3', logo: '🇺🇸' },
+        'Sauber': { main: '#52E252', light: '#7AE67A', dark: '#2ECC2E', logo: '🇨🇭' }
+      };
+
+      const enrichedStandings = constructorStandings.map((team: any) => ({
+        ...team,
+        colors: teamColors[team.name as keyof typeof teamColors] || {
+          main: '#ffffff',
+          light: '#f0f0f0',
+          dark: '#e0e0e0',
+          logo: '🏁'
+        }
+      }));
+
+      return Response.json(enrichedStandings);
+    }
+
+    // Get driver standings from database
+    const driverStandings = await sql`
+      SELECT
+        ROW_NUMBER() OVER (ORDER BY d.constructor_points DESC, d.name ASC) as position,
+        d.id as driver_id,
+        d.code as driver_code,
+        d.name as driver_name,
+        d.number,
+        d.constructor,
+        d.constructor_points as points,
+        d.nationality,
+        d.flag,
+        0 as wins,
+        0 as podiums,
+        ${season} as season
       FROM drivers d
-      ORDER BY d.constructor, d.name
+      WHERE d.active = true
+      ORDER BY d.constructor_points DESC, d.name ASC
     `;
 
-    if (!drivers || drivers.length === 0) {
+    if (!driverStandings || driverStandings.length === 0) {
       return new Response("no drivers found", { status: 404 });
     }
 
-    const driverStandings = generateMockStandings(drivers, season);
-
-    if (type === "constructors") {
-      const constructorStandings = generateConstructorStandings(driverStandings);
-      return Response.json(constructorStandings);
-    }
-
+    console.log(`✅ Fetched ${type} standings for season ${season}`);
     return Response.json(driverStandings);
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);

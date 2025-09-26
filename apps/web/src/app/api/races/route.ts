@@ -1,24 +1,28 @@
 /**
  * Races API (GET /api/races)
- * Returns races with id/name/season/round for dropdowns and normalization.
+ * Returns races with id/name/season/round for dropdowns and normalization from database
  */
-import { readFileSync } from 'fs';
-import { join } from 'path';
+import { neon } from '@neondatabase/serverless';
+
+const sql = neon(process.env.NEON_DATABASE_URL!);
 
 export async function GET() {
   try {
-    // Read the JSON file dynamically
-    const filePath = join(process.cwd(), 'data/races.json');
-    const fileContents = readFileSync(filePath, 'utf8');
-    const racesData = JSON.parse(fileContents);
+    // Query races from the database
+    const races = await sql`
+      SELECT
+        r.id,
+        r.name,
+        r.season,
+        r.round,
+        r.date,
+        r.country
+      FROM races r
+      ORDER BY r.season DESC, r.round ASC
+    `;
 
-    // Return the JSON races data directly, sorted by season and round
-    const sortedRaces = racesData.sort((a: any, b: any) => {
-      if (a.season !== b.season) return b.season - a.season; // Newest season first
-      return a.round - b.round; // Earlier rounds first within season
-    });
-
-    return Response.json(sortedRaces);
+    console.log(`✅ Fetched ${races.length} races from database`);
+    return Response.json(races);
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error("/api/races error:", msg);

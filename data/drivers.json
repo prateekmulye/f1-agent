@@ -150,14 +150,14 @@
     "flag": "🇹🇭"
   },
   {
-    "id": "COL",
-    "code": "COL",
-    "number": 43,
-    "name": "Franco Colapinto",
+    "id": "DOO",
+    "code": "DOO",
+    "number": 45,
+    "name": "Jack Doohan",
     "constructor": "Williams",
     "constructorPoints": 17,
-    "nationality": "Argentine",
-    "flag": "🇦🇷"
+    "nationality": "Australian",
+    "flag": "🇦🇺"
   },
   {
     "id": "HUL",
@@ -170,33 +170,33 @@
     "flag": "🇩🇪"
   },
   {
-    "id": "MAG",
-    "code": "MAG",
-    "number": 20,
-    "name": "Kevin Magnussen",
+    "id": "BEA",
+    "code": "BEA",
+    "number": 50,
+    "name": "Oliver Bearman",
     "constructor": "Haas",
     "constructorPoints": 54,
-    "nationality": "Danish",
-    "flag": "🇩🇰"
+    "nationality": "British",
+    "flag": "🇬🇧"
   },
   {
-    "id": "BOT",
-    "code": "BOT",
-    "number": 77,
-    "name": "Valtteri Bottas",
+    "id": "HAD",
+    "code": "HAD",
+    "number": 25,
+    "name": "Gabriel Bortoleto",
     "constructor": "Sauber",
     "constructorPoints": 0,
-    "nationality": "Finnish",
-    "flag": "🇫🇮"
+    "nationality": "Brazilian",
+    "flag": "🇧🇷"
   },
   {
-    "id": "ZHO",
-    "code": "ZHO",
-    "number": 24,
-    "name": "Zhou Guanyu",
+    "id": "SAI",
+    "code": "SAI",
+    "number": 55,
+    "name": "Carlos Sainz",
     "constructor": "Sauber",
     "constructorPoints": 0,
-    "nationality": "Chinese",
-    "flag": "🇨🇳"
+    "nationality": "Spanish",
+    "flag": "🇪🇸"
   }
 ]

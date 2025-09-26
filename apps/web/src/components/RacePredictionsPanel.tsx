@@ -14,12 +14,11 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
-  useTheme,
   alpha,
   Skeleton,
   Chip,
   Avatar,
-  Collapse,
+  IconButton,
 } from '@mui/material';
 import {
   EmojiEvents as TrophyIcon,
@@ -51,14 +50,18 @@ interface PredictionResult {
   driver_id: string;
   race_id: string;
   prob_points: number;
-  predicted_position?: number;
-  actual_position?: number | null;
+  score: number;
+  top_factors?: Array<{
+    feature: string;
+    contribution: number;
+  }>;
 }
 
 interface DriverPrediction extends Driver {
   prediction?: PredictionResult;
   predictedPosition?: number;
   actualPosition?: number | null;
+  probability?: number;
 }
 
 interface TeamGroup {
@@ -66,6 +69,7 @@ interface TeamGroup {
   constructorPoints: number;
   drivers: DriverPrediction[];
   teamColor: { main: string; light: string; dark: string };
+  expanded: boolean;
 }
 
 // Team logos mapping
@@ -91,7 +95,7 @@ export default function RacePredictionsPanel() {
   const [selectedRaceId, setSelectedRaceId] = useState<string>('');
   const [teamGroups, setTeamGroups] = useState<TeamGroup[]>([]);
   const [loading, setLoading] = useState(false);
-  const [expandedTeams, setExpandedTeams] = useState<Set<string>>(new Set());
+  const [error, setError] = useState<string | null>(null);
 
   // Fetch races and drivers on component mount
   useEffect(() => {
@@ -123,13 +127,9 @@ export default function RacePredictionsPanel() {
         const defaultRace = upcomingRace || mostRecentRace || races2025[0];
         setSelectedRaceId(defaultRace?.id || '');
 
-        // Expand top 3 teams by default
-        setExpandedTeams(new Set(['Red Bull Racing', 'McLaren', 'Ferrari']));
-
       } catch (err) {
         console.error('Error fetching initial data:', err);
-        // For debugging: show error message in console
-        // In production, you might want to show user-friendly error messages
+        setError('Failed to load race and driver data');
       }
     };
 
@@ -151,35 +151,51 @@ export default function RacePredictionsPanel() {
 
         if (predictionsRes.ok) {
           predictions = await predictionsRes.json();
+          console.log('Predictions received:', predictions.length, 'predictions');
         } else {
-          console.warn('Predictions API failed, using fallback data');
+          console.warn('Predictions API failed, status:', predictionsRes.status);
+          setError('Prediction service unavailable');
+          return;
         }
 
+        // Filter out predictions for non-2025 drivers
+        const validDriverCodes = drivers.map(d => d.code);
+        const validPredictions = predictions.filter(p => validDriverCodes.includes(p.driver_id));
+
+        console.log('Filtered valid predictions:', validPredictions.length, 'from', predictions.length);
+
         // Convert predictions to predicted positions (rank by probability)
-        const sortedPredictions = predictions
+        const sortedPredictions = validPredictions
           .sort((a, b) => b.prob_points - a.prob_points)
           .map((pred, index) => ({
             ...pred,
             predicted_position: index + 1
           }));
 
-        // Group drivers by constructor and add prediction data
-        const driversByTeam: { [key: string]: DriverPrediction[] } = {};
+        console.log('Top 5 predictions:', sortedPredictions.slice(0, 5));
 
-        drivers.forEach(driver => {
-          if (!driversByTeam[driver.constructor]) {
-            driversByTeam[driver.constructor] = [];
-          }
+        // Create driver predictions with matched data
+        const driverPredictions: DriverPrediction[] = drivers.map(driver => {
+          // Match prediction using driver code (3-letter abbreviation)
+          const prediction = sortedPredictions.find(p => p.driver_id === driver.code);
 
-          // Find prediction for this driver
-          const prediction = sortedPredictions.find(p => p.driver_id === driver.id);
-
-          driversByTeam[driver.constructor].push({
+          return {
             ...driver,
             prediction: prediction,
             predictedPosition: prediction?.predicted_position || null,
-            actualPosition: prediction?.actual_position || null,
-          });
+            actualPosition: null, // No actual results yet for future races
+            probability: prediction?.prob_points || null,
+          };
+        });
+
+        // Group drivers by constructor and sort by constructor points
+        const driversByTeam: { [key: string]: DriverPrediction[] } = {};
+
+        driverPredictions.forEach(driver => {
+          if (!driversByTeam[driver.constructor]) {
+            driversByTeam[driver.constructor] = [];
+          }
+          driversByTeam[driver.constructor].push(driver);
         });
 
         // Create team groups sorted by constructor points
@@ -188,15 +204,16 @@ export default function RacePredictionsPanel() {
             constructor,
             constructorPoints: teamDrivers[0]?.constructorPoints || 0,
             drivers: teamDrivers.sort((a, b) => (a.predictedPosition || 99) - (b.predictedPosition || 99)),
-            teamColor: getTeamColorByConstructor(constructor)
+            teamColor: getTeamColorByConstructor(constructor),
+            expanded: ['Red Bull Racing', 'McLaren', 'Ferrari'].includes(constructor) // Default expand top teams
           }))
           .sort((a, b) => b.constructorPoints - a.constructorPoints);
 
+        console.log('Team groups created:', groups.length);
         setTeamGroups(groups);
       } catch (err) {
         console.error('Error fetching predictions:', err);
-        // For debugging: show error message in console
-        // In production, you might want to show user-friendly error messages
+        setError('Failed to fetch predictions');
       } finally {
         setLoading(false);
       }
@@ -206,13 +223,13 @@ export default function RacePredictionsPanel() {
   }, [selectedRaceId, drivers]);
 
   const toggleTeam = (teamName: string) => {
-    const newExpanded = new Set(expandedTeams);
-    if (newExpanded.has(teamName)) {
-      newExpanded.delete(teamName);
-    } else {
-      newExpanded.add(teamName);
-    }
-    setExpandedTeams(newExpanded);
+    setTeamGroups(prevGroups =>
+      prevGroups.map(group =>
+        group.constructor === teamName
+          ? { ...group, expanded: !group.expanded }
+          : group
+      )
+    );
   };
 
   const selectedRace = races.find(race => race.id === selectedRaceId);
@@ -280,6 +297,15 @@ export default function RacePredictionsPanel() {
         </FormControl>
       </Box>
 
+      {/* Error Display */}
+      {error && (
+        <Box sx={{ p: 3, textAlign: 'center' }}>
+          <Typography variant="body2" sx={{ color: '#ff6b6b', mb: 2 }}>
+            {error}
+          </Typography>
+        </Box>
+      )}
+
       {/* Table */}
       <TableContainer
         sx={{
@@ -331,16 +357,20 @@ export default function RacePredictionsPanel() {
               <React.Fragment key={team.constructor}>
                 {/* Team Header Row */}
                 <TableRow
-                  onClick={() => toggleTeam(team.constructor)}
                   sx={{
                     cursor: 'pointer',
                     backgroundColor: alpha(team.teamColor.main, 0.1),
                     '&:hover': { backgroundColor: alpha(team.teamColor.main, 0.2) },
                   }}
                 >
-                  <TableCell sx={{ fontWeight: 600, color: team.teamColor.main }}>
+                  <TableCell
+                    sx={{ fontWeight: 600, color: team.teamColor.main }}
+                    onClick={() => toggleTeam(team.constructor)}
+                  >
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      {expandedTeams.has(team.constructor) ? <ExpandLess /> : <ExpandMore />}
+                      <IconButton size="small" sx={{ color: team.teamColor.main }}>
+                        {team.expanded ? <ExpandLess /> : <ExpandMore />}
+                      </IconButton>
                       {team.constructor}
                       <Chip
                         label={`${team.constructorPoints} pts`}
@@ -357,71 +387,69 @@ export default function RacePredictionsPanel() {
                 </TableRow>
 
                 {/* Driver Rows */}
-                <Collapse in={expandedTeams.has(team.constructor)} timeout="auto" unmountOnExit>
-                  {team.drivers.map((driver) => (
-                    <TableRow
-                      key={driver.id}
-                      sx={{
-                        '&:hover': { backgroundColor: alpha(team.teamColor.main, 0.05) },
-                        borderLeft: `3px solid ${team.teamColor.main}`,
-                      }}
-                    >
-                      <TableCell sx={{ pl: 4, color: 'text.secondary', fontSize: '0.8rem' }}>
-                        {/* Empty for team grouping */}
-                      </TableCell>
-                      <TableCell sx={{ textAlign: 'center', fontSize: '1.2rem' }}>
-                        {driver.flag}
-                      </TableCell>
-                      <TableCell sx={{ textAlign: 'center', fontWeight: 600, color: team.teamColor.main }}>
-                        {driver.number}
-                      </TableCell>
-                      <TableCell sx={{ fontWeight: 500 }}>
-                        {driver.name}
-                      </TableCell>
-                      <TableCell sx={{ textAlign: 'center', fontSize: '1.2rem' }}>
-                        {getTeamLogo(driver.constructor)}
-                      </TableCell>
-                      <TableCell sx={{ textAlign: 'center' }}>
-                        {driver.predictedPosition ? (
-                          <Chip
-                            label={`P${driver.predictedPosition}`}
-                            size="small"
-                            sx={{
-                              backgroundColor: driver.predictedPosition <= 3 ? f1Colors.ferrari.main :
-                                             driver.predictedPosition <= 10 ? f1Colors.mercedes.main :
-                                             alpha('#ffffff', 0.2),
-                              color: 'white',
-                              fontWeight: 600,
-                            }}
-                          />
-                        ) : (
-                          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                            No Data
-                          </Typography>
-                        )}
-                      </TableCell>
-                      <TableCell sx={{ textAlign: 'center' }}>
-                        {driver.actualPosition ? (
-                          <Chip
-                            label={`P${driver.actualPosition}`}
-                            size="small"
-                            sx={{
-                              backgroundColor: driver.actualPosition <= 3 ? '#FFD700' :
-                                             driver.actualPosition <= 10 ? '#C0C0C0' :
-                                             alpha('#ffffff', 0.3),
-                              color: driver.actualPosition <= 10 ? '#000' : '#fff',
-                              fontWeight: 600,
-                            }}
-                          />
-                        ) : (
-                          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                            TBD
-                          </Typography>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </Collapse>
+                {team.expanded && team.drivers.map((driver) => (
+                  <TableRow
+                    key={driver.id}
+                    sx={{
+                      '&:hover': { backgroundColor: alpha(team.teamColor.main, 0.05) },
+                      borderLeft: `3px solid ${team.teamColor.main}`,
+                    }}
+                  >
+                    <TableCell sx={{ pl: 4, color: 'text.secondary', fontSize: '0.8rem' }}>
+                      {/* Empty for team grouping */}
+                    </TableCell>
+                    <TableCell sx={{ textAlign: 'center', fontSize: '1.2rem' }}>
+                      {driver.flag}
+                    </TableCell>
+                    <TableCell sx={{ textAlign: 'center', fontWeight: 600, color: team.teamColor.main }}>
+                      {driver.number}
+                    </TableCell>
+                    <TableCell sx={{ fontWeight: 500 }}>
+                      {driver.name}
+                    </TableCell>
+                    <TableCell sx={{ textAlign: 'center', fontSize: '1.2rem' }}>
+                      {getTeamLogo(driver.constructor)}
+                    </TableCell>
+                    <TableCell sx={{ textAlign: 'center' }}>
+                      {driver.predictedPosition ? (
+                        <Chip
+                          label={`P${driver.predictedPosition}`}
+                          size="small"
+                          sx={{
+                            backgroundColor: driver.predictedPosition <= 3 ? f1Colors.ferrari.main :
+                                           driver.predictedPosition <= 10 ? f1Colors.mercedes.main :
+                                           alpha('#ffffff', 0.2),
+                            color: 'white',
+                            fontWeight: 600,
+                          }}
+                        />
+                      ) : (
+                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                          No Data
+                        </Typography>
+                      )}
+                    </TableCell>
+                    <TableCell sx={{ textAlign: 'center' }}>
+                      {driver.actualPosition ? (
+                        <Chip
+                          label={`P${driver.actualPosition}`}
+                          size="small"
+                          sx={{
+                            backgroundColor: driver.actualPosition <= 3 ? '#FFD700' :
+                                           driver.actualPosition <= 10 ? '#C0C0C0' :
+                                           alpha('#ffffff', 0.3),
+                            color: driver.actualPosition <= 10 ? '#000' : '#fff',
+                            fontWeight: 600,
+                          }}
+                        />
+                      ) : (
+                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                          TBD
+                        </Typography>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
               </React.Fragment>
             ))}
           </TableBody>
