@@ -1,0 +1,141 @@
+{
+  "best_model": "logistic",
+  "training_config": {
+    "data_file": "data/historical_features.csv",
+    "output_dir": "data",
+    "test_size": 0.2,
+    "random_state": 42,
+    "cv_folds": 5,
+    "n_jobs": -1,
+    "target_column": "points_scored",
+    "feature_columns": [
+      "quali_pos",
+      "avg_fp_longrun_delta",
+      "constructor_form",
+      "driver_form",
+      "circuit_effect",
+      "driver_consistency",
+      "constructor_reliability",
+      "driver_momentum",
+      "weather_risk"
+    ],
+    "models_to_train": [
+      "logistic",
+      "random_forest",
+      "gradient_boosting"
+    ],
+    "hyperparameter_tuning": true,
+    "feature_selection": true
+  },
+  "feature_names": [
+    "quali_pos",
+    "avg_fp_longrun_delta",
+    "constructor_form",
+    "driver_form",
+    "circuit_effect",
+    "driver_consistency",
+    "constructor_reliability",
+    "driver_momentum",
+    "weather_risk"
+  ],
+  "models": {
+    "logistic": {
+      "cv_scores": {
+        "cv_brier_score": 0.14046174729561017,
+        "cv_log_loss": 0.4425502752565705,
+        "cv_roc_auc": 0.8666423712342081,
+        "cv_f1": 0.8344582412269418
+      },
+      "test_scores": {
+        "test_brier_score": 0.1996285120524625,
+        "test_log_loss": 0.5818690085792496,
+        "test_roc_auc": 0.7644028103044497,
+        "test_precision": 0.7391304347826086,
+        "test_recall": 0.8360655737704918,
+        "test_f1": 0.7846153846153846
+      },
+      "feature_importance": {
+        "quali_pos": 1.4163258762079556,
+        "constructor_form": 0.5298889878712546,
+        "driver_form": 0.0,
+        "circuit_effect": 0.11627653243351702,
+        "driver_consistency": 0.16977379732965037
+      },
+      "best_params": {
+        "classifier__C": 1.0,
+        "classifier__penalty": "l1",
+        "classifier__solver": "saga",
+        "selector__k": 5
+      },
+      "model_path": "data/logistic_model.pkl"
+    },
+    "random_forest": {
+      "cv_scores": {
+        "cv_brier_score": 0.14629471163236285,
+        "cv_log_loss": 0.44998247950240067,
+        "cv_roc_auc": 0.8601230968577909,
+        "cv_f1": 0.8407418012119102
+      },
+      "test_scores": {
+        "test_brier_score": 0.1979312021514381,
+        "test_log_loss": 0.5807107940017197,
+        "test_roc_auc": 0.7494145199063232,
+        "test_precision": 0.7066666666666667,
+        "test_recall": 0.8688524590163934,
+        "test_f1": 0.7794117647058824
+      },
+      "feature_importance": {
+        "quali_pos": 0.46503280126100355,
+        "avg_fp_longrun_delta": 0.0,
+        "constructor_form": 0.1993774886783471,
+        "driver_form": 0.11785667468036021,
+        "circuit_effect": 0.04427790067051963,
+        "driver_consistency": 0.07419596355887996,
+        "constructor_reliability": 0.06979265647267581,
+        "driver_momentum": 0.029466514678213825,
+        "weather_risk": 0.0
+      },
+      "best_params": {
+        "classifier__max_depth": 5,
+        "classifier__min_samples_leaf": 4,
+        "classifier__min_samples_split": 10,
+        "classifier__n_estimators": 100
+      },
+      "model_path": "data/random_forest_model.pkl"
+    },
+    "gradient_boosting": {
+      "cv_scores": {
+        "cv_brier_score": 0.1567801766763338,
+        "cv_log_loss": 0.4779386423817519,
+        "cv_roc_auc": 0.8434915235935645,
+        "cv_f1": 0.8210004261991448
+      },
+      "test_scores": {
+        "test_brier_score": 0.1903276786258757,
+        "test_log_loss": 0.5894269326018603,
+        "test_roc_auc": 0.7517564402810304,
+        "test_precision": 0.7464788732394366,
+        "test_recall": 0.8688524590163934,
+        "test_f1": 0.803030303030303
+      },
+      "feature_importance": {
+        "quali_pos": 0.5957424982920684,
+        "avg_fp_longrun_delta": 0.0,
+        "constructor_form": 0.15308844024536455,
+        "driver_form": 0.06155816231138762,
+        "circuit_effect": 0.04923625011655642,
+        "driver_consistency": 0.02829656842184949,
+        "constructor_reliability": 0.0958697008454873,
+        "driver_momentum": 0.01620837976728626,
+        "weather_risk": 0.0
+      },
+      "best_params": {
+        "classifier__learning_rate": 0.05,
+        "classifier__max_depth": 3,
+        "classifier__min_samples_split": 5,
+        "classifier__n_estimators": 100
+      },
+      "model_path": "data/gradient_boosting_model.pkl"
+    }
+  }
+}
