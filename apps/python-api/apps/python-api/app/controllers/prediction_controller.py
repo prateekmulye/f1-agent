@@ -20,58 +20,74 @@ async def get_prediction_service(db: AsyncSession = Depends(get_database)) -> Pr
 @prediction_router.post(
     "/race/{race_id}",
     response_model=List[PredictionResponse],
-    summary="Generate race predictions",
-    description="Generate ML-based predictions for all drivers in a specific race"
+    summary="Get race predictions or results",
+    description="Get ML-based predictions for upcoming races or actual results for completed races"
 )
 @apply_rate_limit("prediction")
 async def predict_race(
     race_id: str,
     prediction_service: PredictionService = Depends(get_prediction_service)
 ):
-    """Generate predictions for all drivers in a race"""
+    """Get predictions or actual results for all drivers in a race"""
     try:
         predictions = await prediction_service.predict_race(race_id)
 
         if not predictions:
             raise HTTPException(
                 status_code=404,
-                detail="No drivers found for race or race does not exist"
+                detail="No data found for race or race does not exist"
             )
 
-        return predictions
+        # Check if these are actual results or predictions
+        is_historical = await prediction_service.has_historical_data(race_id)
+
+        return {
+            "race_id": race_id,
+            "is_actual_results": is_historical,
+            "data_type": "historical_results" if is_historical else "ml_predictions",
+            "predictions": predictions
+        }
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(
             status_code=500,
-            detail=f"Error generating predictions: {str(e)}"
+            detail=f"Error retrieving race data: {str(e)}"
         )
 
 
 @prediction_router.get(
     "/race/{race_id}",
     response_model=List[PredictionResponse],
-    summary="Get race predictions",
-    description="Retrieve existing predictions for a specific race"
+    summary="Get race predictions or results",
+    description="Retrieve predictions for upcoming races or actual results for completed races"
 )
 @apply_rate_limit("prediction")
 async def get_race_predictions(
     race_id: str,
     prediction_service: PredictionService = Depends(get_prediction_service)
 ):
-    """Get existing predictions for a race"""
+    """Get predictions or actual results for a race"""
     try:
         predictions = await prediction_service.get_predictions_for_race(race_id)
 
         if not predictions:
-            # If no cached predictions exist, generate new ones
+            # If no cached predictions exist, generate new ones or get historical data
             predictions = await prediction_service.predict_race(race_id)
 
-        return predictions
+        # Check if these are actual results or predictions
+        is_historical = await prediction_service.has_historical_data(race_id)
+
+        return {
+            "race_id": race_id,
+            "is_actual_results": is_historical,
+            "data_type": "historical_results" if is_historical else "ml_predictions",
+            "predictions": predictions
+        }
     except Exception as e:
         raise HTTPException(
             status_code=500,
-            detail=f"Error retrieving predictions: {str(e)}"
+            detail=f"Error retrieving race data: {str(e)}"
         )
 
 
