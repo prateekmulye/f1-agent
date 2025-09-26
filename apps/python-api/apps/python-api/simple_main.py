@@ -260,18 +260,47 @@ async def get_race(race_id: str):
 
 @app.get("/api/v1/races/upcoming")
 async def get_upcoming_races(limit: int = 5):
-    """Get upcoming races"""
-    # Filter races by date (mock implementation)
+    """Get upcoming races with real-time status"""
     today = datetime.now().date()
-    upcoming = [r for r in ALL_RACES if datetime.fromisoformat(r["date"]).date() >= today]
+    upcoming = []
+
+    for race in ALL_RACES:
+        race_date = datetime.fromisoformat(race["date"]).date()
+        if race_date >= today:
+            # Add computed status fields
+            race_with_status = race.copy()
+            race_with_status.update({
+                "status": "upcoming",
+                "is_completed": False,
+                "days_away": (race_date - today).days,
+                "is_next": len(upcoming) == 0  # First upcoming race is the "next" one
+            })
+            upcoming.append(race_with_status)
+
     return upcoming[:limit]
 
 
 @app.get("/api/v1/races/recent")
 async def get_recent_races(limit: int = 5):
-    """Get recent races"""
-    # Mock implementation - return first few races
-    return ALL_RACES[:limit]
+    """Get recent/completed races with real-time status"""
+    today = datetime.now().date()
+    recent = []
+
+    for race in ALL_RACES:
+        race_date = datetime.fromisoformat(race["date"]).date()
+        if race_date < today:
+            # Add computed status fields
+            race_with_status = race.copy()
+            race_with_status.update({
+                "status": "completed",
+                "is_completed": True,
+                "days_ago": (today - race_date).days
+            })
+            recent.append(race_with_status)
+
+    # Sort by date descending (most recent first)
+    recent.sort(key=lambda x: x["date"], reverse=True)
+    return recent[:limit]
 
 
 @app.get("/api/v1/predictions/race/{race_id}")
@@ -310,6 +339,156 @@ async def get_standings(season: int = 2025):
             {"position": i+1, "team": team["name"], "points": team["points"]}
             for i, team in enumerate(TEAMS_2025)
         ]
+    }
+
+
+@app.get("/api/v1/calendar/stats")
+async def get_calendar_stats(season: int = 2025):
+    """Get comprehensive race calendar statistics with real-time status"""
+    today = datetime.now().date()
+
+    season_races = [r for r in ALL_RACES if r["season"] == season]
+
+    upcoming_races = []
+    completed_races = []
+    next_race = None
+
+    for race in season_races:
+        race_date = datetime.fromisoformat(race["date"]).date()
+        if race_date >= today:
+            upcoming_races.append(race)
+            if next_race is None:
+                next_race = race.copy()
+                next_race["days_away"] = (race_date - today).days
+        else:
+            completed_races.append(race)
+
+    return {
+        "season": season,
+        "total_races": len(season_races),
+        "upcoming_races": len(upcoming_races),
+        "completed_races": len(completed_races),
+        "next_race": next_race,
+        "last_updated": datetime.now().isoformat(),
+        "current_date": today.isoformat()
+    }
+
+
+@app.get("/api/v1/calendar/status/{race_id}")
+async def get_race_status(race_id: str):
+    """Get detailed status for a specific race"""
+    race = next((r for r in ALL_RACES if r["id"] == race_id), None)
+    if not race:
+        raise HTTPException(status_code=404, detail="Race not found")
+
+    today = datetime.now().date()
+    race_date = datetime.fromisoformat(race["date"]).date()
+
+    # Determine status
+    if race_date > today:
+        status = "upcoming"
+        days_difference = (race_date - today).days
+        time_label = f"{days_difference} days away"
+    elif race_date == today:
+        status = "today"
+        days_difference = 0
+        time_label = "Race day!"
+    else:
+        status = "completed"
+        days_difference = (today - race_date).days
+        time_label = f"{days_difference} days ago"
+
+    race_with_status = race.copy()
+    race_with_status.update({
+        "status": status,
+        "is_completed": status in ["completed"],
+        "is_today": status == "today",
+        "is_upcoming": status == "upcoming",
+        "days_difference": days_difference,
+        "time_label": time_label,
+        "last_updated": datetime.now().isoformat()
+    })
+
+    return race_with_status
+
+
+@app.get("/api/v1/calendar/by-status/{status}")
+async def get_races_by_status(status: str, season: int = 2025, limit: int = 10):
+    """Get races filtered by status (upcoming, completed, today, all)"""
+    if status not in ["upcoming", "completed", "today", "all"]:
+        raise HTTPException(
+            status_code=400,
+            detail="Status must be one of: upcoming, completed, today, all"
+        )
+
+    today = datetime.now().date()
+    season_races = [r for r in ALL_RACES if r["season"] == season]
+    filtered_races = []
+
+    for race in season_races:
+        race_date = datetime.fromisoformat(race["date"]).date()
+        race_status = None
+
+        if race_date > today:
+            race_status = "upcoming"
+        elif race_date == today:
+            race_status = "today"
+        else:
+            race_status = "completed"
+
+        # Filter based on requested status
+        if status == "all" or race_status == status:
+            race_with_status = race.copy()
+            race_with_status.update({
+                "status": race_status,
+                "is_completed": race_status == "completed",
+                "is_today": race_status == "today",
+                "is_upcoming": race_status == "upcoming",
+                "days_difference": abs((race_date - today).days)
+            })
+            filtered_races.append(race_with_status)
+
+    # Sort appropriately
+    if status == "upcoming":
+        filtered_races.sort(key=lambda x: x["date"])  # Earliest first
+    elif status == "completed":
+        filtered_races.sort(key=lambda x: x["date"], reverse=True)  # Most recent first
+    else:
+        filtered_races.sort(key=lambda x: x["round"])  # By round number
+
+    return {
+        "status_filter": status,
+        "season": season,
+        "total_found": len(filtered_races),
+        "races": filtered_races[:limit],
+        "last_updated": datetime.now().isoformat()
+    }
+
+
+@app.post("/api/v1/calendar/refresh")
+async def refresh_calendar_status():
+    """Refresh race calendar status (for manual updates)"""
+    today = datetime.now().date()
+
+    total_races = len(ALL_RACES)
+    upcoming_count = 0
+    completed_count = 0
+
+    for race in ALL_RACES:
+        race_date = datetime.fromisoformat(race["date"]).date()
+        if race_date >= today:
+            upcoming_count += 1
+        else:
+            completed_count += 1
+
+    return {
+        "message": "Calendar status refreshed",
+        "refresh_time": datetime.now().isoformat(),
+        "summary": {
+            "total_races": total_races,
+            "upcoming": upcoming_count,
+            "completed": completed_count
+        }
     }
 
 

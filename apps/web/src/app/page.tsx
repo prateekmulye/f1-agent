@@ -13,8 +13,9 @@ import {
 } from '@mui/material';
 import F1ChatBot from '@/components/F1ChatBot';
 import RacePredictionsPanel from '@/components/RacePredictionsPanel';
+import RaceCalendar from '@/components/RaceCalendar';
 import SlipstreamLogo from '@/components/SlipstreamLogo';
-import { f1Colors } from '@/theme/f1Theme';
+import { f1Colors, slipstreamColors } from '@/theme/f1Theme';
 
 function HeroSection() {
   const theme = useTheme();
@@ -163,19 +164,20 @@ export default function HomePage() {
         top={0}
         elevation={0}
         sx={{
-          backgroundColor: alpha('#000000', 0.95),
+          backgroundColor: alpha(slipstreamColors.primary, 0.95),
           backdropFilter: 'blur(20px)',
-          borderBottom: `1px solid ${alpha('#ffffff', 0.1)}`,
+          borderBottom: `1px solid ${alpha(slipstreamColors.border, 0.3)}`,
           zIndex: 1100,
         }}
       >
         <Toolbar sx={{ justifyContent: 'space-between', py: 1 }}>
-          <SlipstreamLogo size="small" />
+          <SlipstreamLogo size="medium" color="white" />
           <Typography
             variant="body2"
             sx={{
-              color: 'text.secondary',
-              fontSize: '0.8rem',
+              color: slipstreamColors.text.secondary,
+              fontSize: '0.85rem',
+              fontWeight: 500,
               display: { xs: 'none', sm: 'block' }
             }}
           >
@@ -187,12 +189,13 @@ export default function HomePage() {
       {/* Compact Hero Section */}
       <Box
         sx={{
-          minHeight: { xs: '40vh', md: '50vh' },
+          minHeight: { xs: '50vh', md: '60vh' },
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          background: `linear-gradient(135deg, ${alpha('#000000', 0.95)} 0%, ${alpha('#1a1a1a', 0.8)} 50%, ${alpha('#000000', 0.95)} 100%)`,
+          background: slipstreamColors.gradients.hero,
           position: 'relative',
+          overflow: 'hidden',
           '&::before': {
             content: '""',
             position: 'absolute',
@@ -200,54 +203,130 @@ export default function HomePage() {
             left: 0,
             right: 0,
             bottom: 0,
-            background: `radial-gradient(circle at 20% 50%, ${alpha(f1Colors.ferrari.main, 0.15)} 0%, transparent 50%),
-                         radial-gradient(circle at 80% 20%, ${alpha(f1Colors.mercedes.main, 0.12)} 0%, transparent 50%)`,
+            background: `radial-gradient(circle at 30% 40%, ${alpha(slipstreamColors.accent, 0.4)} 0%, transparent 60%),
+                         radial-gradient(circle at 70% 60%, ${alpha(slipstreamColors.tertiary, 0.3)} 0%, transparent 50%),
+                         radial-gradient(circle at 50% 20%, ${alpha(slipstreamColors.light, 0.2)} 0%, transparent 40%)`,
           },
+          '&::after': {
+            content: '""',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: `linear-gradient(45deg, ${alpha(slipstreamColors.primary, 0.1)} 0%, transparent 50%)`,
+          }
         }}
       >
-        <Container maxWidth="md" sx={{ position: 'relative', zIndex: 1, textAlign: 'center', py: 3 }}>
-          <Box sx={{ mb: 2 }}>
-            <SlipstreamLogo size="large" />
+        <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1, textAlign: 'center', py: 4 }}>
+          <Box sx={{ mb: 4 }}>
+            <SlipstreamLogo size="xlarge" />
           </Box>
           <Typography
-            variant="h4"
+            variant="h3"
             sx={{
-              color: 'text.primary',
-              fontWeight: 600,
-              mb: 2,
-              fontSize: { xs: '1.5rem', md: '2rem' },
+              color: slipstreamColors.text.primary,
+              fontWeight: 700,
+              mb: 3,
+              fontSize: { xs: '2rem', md: '3rem', lg: '3.5rem' },
+              letterSpacing: '-0.02em',
             }}
           >
             Formula 1 AI Intelligence Platform
           </Typography>
           <Typography
-            variant="body1"
+            variant="h6"
             sx={{
-              color: 'text.secondary',
-              maxWidth: '500px',
+              color: slipstreamColors.text.secondary,
+              maxWidth: '600px',
               mx: 'auto',
-              mb: 3,
-              fontSize: { xs: '0.9rem', md: '1rem' },
+              mb: 4,
+              fontSize: { xs: '1rem', md: '1.25rem' },
+              lineHeight: 1.6,
+              fontWeight: 400,
             }}
           >
-            Advanced AI predictions and real-time race analytics for the 2025 season
+            Advanced AI predictions, real-time analytics, and comprehensive race insights for the 2025 Formula 1 season
           </Typography>
+
+          {/* Improved Stats Section */}
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              gap: { xs: 4, md: 8 },
+              flexWrap: 'wrap',
+              mt: 4,
+            }}
+          >
+            {[
+              { value: '2025', label: 'Season', icon: '🏁' },
+              { value: '24', label: 'Races', icon: '🏎️' },
+              { value: '20', label: 'Drivers', icon: '👤' },
+              { value: '10', label: 'Teams', icon: '🏢' },
+            ].map((stat, index) => (
+              <Box
+                key={index}
+                sx={{
+                  textAlign: 'center',
+                  padding: 2,
+                  backgroundColor: alpha(slipstreamColors.surface, 0.3),
+                  backdropFilter: 'blur(10px)',
+                  borderRadius: 3,
+                  border: `1px solid ${alpha(slipstreamColors.border, 0.3)}`,
+                  minWidth: '100px',
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    transform: 'translateY(-5px)',
+                    backgroundColor: alpha(slipstreamColors.surface, 0.5),
+                  }
+                }}
+              >
+                <Typography sx={{ fontSize: '1.5rem', mb: 1 }}>
+                  {stat.icon}
+                </Typography>
+                <Typography
+                  variant="h4"
+                  sx={{
+                    color: slipstreamColors.text.primary,
+                    fontWeight: 700,
+                    mb: 0.5,
+                    fontSize: { xs: '1.5rem', md: '2rem' },
+                  }}
+                >
+                  {stat.value}
+                </Typography>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    color: slipstreamColors.text.secondary,
+                    fontSize: '0.875rem',
+                    fontWeight: 500,
+                  }}
+                >
+                  {stat.label}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
         </Container>
       </Box>
 
       {/* Main Content */}
-      <Container maxWidth="xl" sx={{ py: 3 }}>
+      <Container maxWidth="xl" sx={{ py: 4 }}>
         <Typography
           variant="h4"
           sx={{
             textAlign: 'center',
-            mb: 3,
-            fontWeight: 600,
-            background: `linear-gradient(45deg, ${f1Colors.ferrari.main}, ${f1Colors.mercedes.main})`,
+            mb: 4,
+            fontWeight: 700,
+            background: slipstreamColors.gradients.accent,
             backgroundClip: 'text',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
-            fontSize: { xs: '1.5rem', md: '2rem' },
+            fontSize: { xs: '1.8rem', md: '2.5rem' },
+            letterSpacing: '-0.01em',
           }}
         >
           F1 Intelligence Hub
@@ -280,23 +359,48 @@ export default function HomePage() {
             </Box>
           </Grid>
         </Grid>
+
+        {/* Race Calendar Section */}
+        <Box sx={{ mt: 6 }}>
+          <RaceCalendar />
+        </Box>
       </Container>
 
       {/* Footer */}
-      <Box sx={{ py: 2, mt: 4 }}>
+      <Box sx={{ py: 4, mt: 6 }}>
         <Container maxWidth="xl">
           <Paper
             elevation={0}
             sx={{
-              p: 2,
+              p: 4,
               textAlign: 'center',
-              backgroundColor: alpha('#1a1a1a', 0.3),
-              border: `1px solid ${alpha('#ffffff', 0.1)}`,
-              borderRadius: 2,
+              backgroundColor: alpha(slipstreamColors.surface, 0.4),
+              backdropFilter: 'blur(20px)',
+              border: `1px solid ${alpha(slipstreamColors.border, 0.3)}`,
+              borderRadius: 3,
             }}
           >
-            <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '0.8rem' }}>
+            <SlipstreamLogo size="medium" variant="full" color="monochrome" />
+            <Typography
+              variant="body2"
+              sx={{
+                color: slipstreamColors.text.secondary,
+                fontSize: '0.9rem',
+                mt: 2,
+                fontWeight: 500,
+              }}
+            >
               Powered by ML models • OpenF1 API • 2025 Season Ready
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={{
+                color: slipstreamColors.text.muted,
+                fontSize: '0.75rem',
+                mt: 1,
+              }}
+            >
+              © 2025 Slipstream. Formula 1 data analysis and AI predictions.
             </Typography>
           </Paper>
         </Container>

@@ -1,6 +1,28 @@
 import { createTheme, alpha } from '@mui/material/styles';
 
-// F1 Team Colors with Alpha Variants
+// Slipstream Brand Colors (from logo)
+export const slipstreamColors = {
+  primary: '#0C1522',    // Main dark navy from logo
+  secondary: '#0F1E2F',  // Medium navy from logo
+  tertiary: '#173245',   // Lighter navy from logo
+  accent: '#2A4A5C',     // Complementary blue-gray
+  light: '#3A5A70',      // Lighter accent
+  surface: '#1A2B38',    // Surface color
+  border: '#243541',     // Border color
+  text: {
+    primary: '#FFFFFF',
+    secondary: '#B8C5D1',
+    muted: '#8A9BA8'
+  },
+  gradients: {
+    primary: 'linear-gradient(135deg, #0C1522 0%, #173245 100%)',
+    secondary: 'linear-gradient(135deg, #0F1E2F 0%, #2A4A5C 100%)',
+    accent: 'linear-gradient(45deg, #173245 0%, #3A5A70 100%)',
+    hero: 'linear-gradient(135deg, #0C1522 0%, #0F1E2F 25%, #173245 50%, #2A4A5C 75%, #3A5A70 100%)'
+  }
+};
+
+// F1 Team Colors with Alpha Variants (for data visualization)
 export const f1Colors = {
   ferrari: {
     main: '#E8002D',
@@ -58,24 +80,24 @@ export const f1Theme = createTheme({
   palette: {
     mode: 'dark',
     primary: {
-      main: f1Colors.ferrari.main,
-      light: f1Colors.ferrari.light,
-      dark: f1Colors.ferrari.dark,
+      main: slipstreamColors.accent,
+      light: slipstreamColors.light,
+      dark: slipstreamColors.primary,
     },
     secondary: {
-      main: f1Colors.mercedes.main,
-      light: f1Colors.mercedes.light,
-      dark: f1Colors.mercedes.dark,
+      main: slipstreamColors.tertiary,
+      light: alpha(slipstreamColors.tertiary, 0.6),
+      dark: alpha(slipstreamColors.tertiary, 0.8),
     },
     background: {
-      default: '#000000',
-      paper: alpha('#1a1a1a', 0.8),
+      default: slipstreamColors.primary,
+      paper: alpha(slipstreamColors.surface, 0.8),
     },
     text: {
-      primary: '#ffffff',
-      secondary: alpha('#ffffff', 0.7),
+      primary: slipstreamColors.text.primary,
+      secondary: slipstreamColors.text.secondary,
     },
-    divider: alpha('#ffffff', 0.1),
+    divider: alpha(slipstreamColors.border, 0.3),
     error: {
       main: f1Colors.ferrari.main,
     },
@@ -137,7 +159,7 @@ export const f1Theme = createTheme({
     MuiCssBaseline: {
       styleOverrides: {
         body: {
-          background: 'linear-gradient(135deg, #000000 0%, #1a1a1a 50%, #000000 100%)',
+          background: slipstreamColors.gradients.hero,
           backgroundAttachment: 'fixed',
         },
       },
@@ -146,32 +168,40 @@ export const f1Theme = createTheme({
       styleOverrides: {
         root: {
           backgroundImage: 'none',
-          backgroundColor: alpha('#1a1a1a', 0.6),
+          backgroundColor: alpha(slipstreamColors.surface, 0.7),
           backdropFilter: 'blur(20px)',
-          border: `1px solid ${alpha('#ffffff', 0.1)}`,
+          border: `1px solid ${alpha(slipstreamColors.border, 0.3)}`,
         },
       },
     },
     MuiButton: {
       styleOverrides: {
         root: {
-          borderRadius: 8,
+          borderRadius: 12,
           backdropFilter: 'blur(10px)',
-          border: `1px solid ${alpha('#ffffff', 0.2)}`,
+          fontWeight: 600,
+          textTransform: 'none',
+          transition: 'all 0.3s ease',
         },
         contained: {
-          backgroundColor: alpha('#E8002D', 0.2),
-          color: '#ffffff',
+          background: slipstreamColors.gradients.accent,
+          color: slipstreamColors.text.primary,
+          border: `1px solid ${alpha(slipstreamColors.light, 0.3)}`,
           '&:hover': {
-            backgroundColor: alpha('#E8002D', 0.4),
+            background: slipstreamColors.gradients.secondary,
+            transform: 'translateY(-1px)',
+            boxShadow: `0 8px 32px ${alpha(slipstreamColors.accent, 0.3)}`,
           },
         },
         outlined: {
-          borderColor: alpha('#ffffff', 0.3),
-          color: '#ffffff',
+          borderColor: alpha(slipstreamColors.border, 0.6),
+          color: slipstreamColors.text.secondary,
+          backgroundColor: alpha(slipstreamColors.surface, 0.3),
           '&:hover': {
-            backgroundColor: alpha('#ffffff', 0.05),
-            borderColor: alpha('#ffffff', 0.5),
+            backgroundColor: alpha(slipstreamColors.surface, 0.6),
+            borderColor: alpha(slipstreamColors.light, 0.8),
+            color: slipstreamColors.text.primary,
+            transform: 'translateY(-1px)',
           },
         },
       },
@@ -179,10 +209,12 @@ export const f1Theme = createTheme({
     MuiIconButton: {
       styleOverrides: {
         root: {
-          backgroundColor: alpha('#ffffff', 0.05),
+          backgroundColor: alpha(slipstreamColors.surface, 0.4),
           backdropFilter: 'blur(10px)',
+          border: `1px solid ${alpha(slipstreamColors.border, 0.3)}`,
           '&:hover': {
-            backgroundColor: alpha('#ffffff', 0.1),
+            backgroundColor: alpha(slipstreamColors.surface, 0.8),
+            transform: 'scale(1.05)',
           },
         },
       },
@@ -191,16 +223,17 @@ export const f1Theme = createTheme({
       styleOverrides: {
         root: {
           '& .MuiOutlinedInput-root': {
-            backgroundColor: alpha('#1a1a1a', 0.4),
+            backgroundColor: alpha(slipstreamColors.surface, 0.6),
             backdropFilter: 'blur(10px)',
             '& fieldset': {
-              borderColor: alpha('#ffffff', 0.2),
+              borderColor: alpha(slipstreamColors.border, 0.5),
             },
             '&:hover fieldset': {
-              borderColor: alpha('#ffffff', 0.4),
+              borderColor: alpha(slipstreamColors.light, 0.7),
             },
             '&.Mui-focused fieldset': {
-              borderColor: f1Colors.ferrari.main,
+              borderColor: slipstreamColors.accent,
+              borderWidth: '2px',
             },
           },
         },
@@ -209,18 +242,36 @@ export const f1Theme = createTheme({
     MuiCard: {
       styleOverrides: {
         root: {
-          backgroundColor: alpha('#1a1a1a', 0.4),
+          backgroundColor: alpha(slipstreamColors.surface, 0.5),
           backdropFilter: 'blur(20px)',
-          border: `1px solid ${alpha('#ffffff', 0.1)}`,
+          border: `1px solid ${alpha(slipstreamColors.border, 0.3)}`,
+          transition: 'all 0.3s ease',
+          '&:hover': {
+            transform: 'translateY(-2px)',
+            boxShadow: `0 12px 40px ${alpha(slipstreamColors.primary, 0.4)}`,
+          },
         },
       },
     },
     MuiChip: {
       styleOverrides: {
         root: {
-          backgroundColor: alpha('#ffffff', 0.1),
-          color: '#ffffff',
+          backgroundColor: alpha(slipstreamColors.accent, 0.3),
+          color: slipstreamColors.text.primary,
           backdropFilter: 'blur(10px)',
+          border: `1px solid ${alpha(slipstreamColors.border, 0.3)}`,
+          '&:hover': {
+            backgroundColor: alpha(slipstreamColors.accent, 0.5),
+          },
+        },
+      },
+    },
+    MuiAppBar: {
+      styleOverrides: {
+        root: {
+          backgroundColor: alpha(slipstreamColors.primary, 0.95),
+          backdropFilter: 'blur(20px)',
+          borderBottom: `1px solid ${alpha(slipstreamColors.border, 0.3)}`,
         },
       },
     },
