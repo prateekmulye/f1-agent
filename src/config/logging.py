@@ -62,7 +62,7 @@ def setup_logging(settings: Settings) -> None:
     logging.basicConfig(
         format="%(message)s",
         stream=sys.stdout,
-        level=getattr(logging, settings.log_level),
+        level=getattr(logging, settings.log_level.upper()),
     )
 
     # Define processors based on environment
