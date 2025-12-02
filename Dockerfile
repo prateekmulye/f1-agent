@@ -63,7 +63,6 @@ COPY --from=builder --chown=appuser:appuser /app/.venv /app/.venv
 
 # Copy application code
 COPY --chown=appuser:appuser src/ ./src/
-COPY --chown=appuser:appuser README.md ./
 
 # Switch to non-root user
 USER appuser
@@ -97,7 +96,6 @@ ENV ENVIRONMENT=development \
 
 # Copy application code
 COPY src/ ./src/
-COPY README.md ./
 COPY tests/ ./tests/
 
 # Create non-root user

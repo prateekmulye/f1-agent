@@ -41,9 +41,9 @@ docker-compose*.yml
 .dockerignore
 
 # Documentation
-*.md
 docs/
 examples/
+# Note: README.md is needed for the application, so don't ignore it
 
 # CI/CD
 .github/
