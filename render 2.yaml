@@ -1,0 +1,50 @@
+# Render Blueprint for F1-Slipstream Agent
+# Deploy with: render.yaml in repository root
+
+services:
+  # Streamlit UI Service
+  - type: web
+    name: f1-slipstream-ui
+    runtime: python
+    region: oregon
+    plan: free
+    branch: main
+    rootDir: .
+    buildCommand: pip install -r requirements.txt
+    startCommand: streamlit run src/ui/app.py --server.port $PORT --server.address 0.0.0.0 --server.headless true --server.enableCORS false --server.enableXsrfProtection true
+    healthCheckPath: /_stcore/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: ENVIRONMENT
+        value: production
+      - key: LOG_LEVEL
+        value: INFO
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: PINECONE_API_KEY
+        sync: false
+      - key: PINECONE_INDEX_NAME
+        value: f1-knowledge-free
+      - key: TAVILY_API_KEY
+        sync: false
+      - key: OPENAI_MODEL
+        value: gpt-3.5-turbo
+      - key: OPENAI_MAX_TOKENS
+        value: 500
+      - key: OPENAI_TEMPERATURE
+        value: 0.7
+      - key: MAX_REQUESTS_PER_MINUTE
+        value: 3
+      - key: MAX_REQUESTS_PER_DAY
+        value: 100
+      - key: ENABLE_RATE_LIMITING
+        value: true
+      - key: TAVILY_MAX_RESULTS
+        value: 3
+      - key: TAVILY_DAILY_LIMIT
+        value: 30
+      - key: CACHE_TTL_SECONDS
+        value: 3600
+      - key: ENABLE_CACHING
+        value: true

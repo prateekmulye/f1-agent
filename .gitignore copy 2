@@ -1,0 +1,80 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.cover
+.hypothesis/
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+.poetry/
+
+# Environment files
+.env
+.env.local
+.env.development
+.env.production
+.env.staging
+.env.render
+!.env.example
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+logs/
+
+# Data files
+data/*.pkl
+data/*.json
+!data/migration/
+data/migration/*.pkl
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.backup
+
+# Docker
+.dockerignore
+
+# Coverage
+.coverage
+htmlcov/
+
+# Distribution
+dist/
+build/
+
+# Monitoring data
+monitoring/data/
+
+# Backups
+backups/
+*.tar.gz
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
