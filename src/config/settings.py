@@ -1,7 +1,8 @@
 """Pydantic-based configuration management with environment variable loading."""
 
+import json
 from functools import lru_cache
-from typing import Literal, Optional
+from typing import Literal, Optional, Union
 
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -71,7 +72,7 @@ class Settings(BaseSettings):
         default="advanced",
         description="Tavily search depth (advanced includes more sources)",
     )
-    tavily_include_domains: list[str] = Field(
+    tavily_include_domains: Union[str, list[str]] = Field(
         default_factory=lambda: [
             "formula1.com",
             "fia.com",
@@ -85,7 +86,7 @@ class Settings(BaseSettings):
         ],
         description="Preferred domains for F1 news (empty list = all domains)",
     )
-    tavily_exclude_domains: list[str] = Field(
+    tavily_exclude_domains: Union[str, list[str]] = Field(
         default_factory=list,
         description="Domains to exclude from search results",
     )
@@ -202,7 +203,7 @@ class Settings(BaseSettings):
         default=True,
         description="Enable CORS middleware",
     )
-    cors_allow_origins: list[str] = Field(
+    cors_allow_origins: Union[str, list[str]] = Field(
         default_factory=lambda: [
             "http://localhost:3000",
             "http://localhost:8501",
@@ -229,6 +230,46 @@ class Settings(BaseSettings):
                 f"Please update your .env file."
             )
         return v
+
+    @field_validator(
+        "cors_allow_origins",
+        "tavily_include_domains",
+        "tavily_exclude_domains",
+        mode="before"
+    )
+    @classmethod
+    def parse_string_lists(cls, v):
+        """Parse list fields from environment variables.
+        
+        Supports:
+        - List objects (from code): ["item1", "item2"]
+        - JSON strings: '["item1","item2"]'
+        - Comma-separated: "item1,item2"
+        - Single string: "*" or "item1"
+        - Empty string: returns empty list
+        """
+        if isinstance(v, list):
+            return v
+        if isinstance(v, str):
+            v = v.strip()
+            # Handle empty string
+            if not v:
+                return []
+            # Handle wildcard (for CORS)
+            if v == "*":
+                return ["*"]
+            # Try parsing as JSON
+            if v.startswith("["):
+                try:
+                    return json.loads(v)
+                except json.JSONDecodeError:
+                    pass
+            # Try comma-separated
+            if "," in v:
+                return [item.strip() for item in v.split(",") if item.strip()]
+            # Single value
+            return [v]
+        return v if v is not None else []
 
     @property
     def is_development(self) -> bool:
