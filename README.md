@@ -1,102 +1,302 @@
-# 🏎️ F1 Agent — Race Predictor & Explainable Insights
+# 🏎️ F1-Slipstream Agent
 
-<div align="center">
+An AI-powered Formula 1 chatbot that provides real-time race information, predictions, and insights using advanced RAG (Retrieval-Augmented Generation) architecture.
 
-[![F1 Logo](https://img.shields.io/badge/F1-Official%20Partner-E10600?style=for-the-badge&logo=formula1&logoColor=white)](https://f1-agent.vercel.app)
-[![AI Powered](https://img.shields.io/badge/AI-Powered-5B00FF?style=for-the-badge&logo=openai&logoColor=white)](https://f1-agent.vercel.app)
-[![Built with Llama](https://img.shields.io/badge/Built%20with-Llama-FF61F6?style=for-the-badge&logo=meta&logoColor=white)](https://f1-agent.vercel.app)
+## 🚀 Live Demo
 
-[Live Demo](https://f1-agent.vercel.app) • [Architecture](#-architecture) • [Quick Start](#-quick-start)
+**Try it now**: [https://f1-slipstream-ui.onrender.com](https://f1-slipstream-ui.onrender.com)
 
-**Last Updated:** Aug 16, 2025
-</div>
+*Note: First load may take 30 seconds as the free tier wakes up.*
 
-Predicts F1 race outcomes from recent form, quali pace, tyre/strategy signals, and track history — then explains *why* with feature attributions and natural‑language rationales.
+---
 
-## ⚡ Tech Stack
+## 🗺️ Quick Navigation
 
-<table>
-<tr>
-<td>
-  
-### 🎨 Frontend
-![Next.js](https://img.shields.io/badge/Next.js-000000?style=flat-square&logo=next.js&logoColor=white)
-![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white)
-![Tailwind](https://img.shields.io/badge/Tailwind-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white)
-</td>
-<td>
+- **New to the project?** → Start with [Setup Guide](docs/SETUP.md)
+- **Want to deploy?** → Follow [Deployment Guide](docs/DEPLOYMENT.md)
+- **Want to contribute?** → Read [Contributing Guide](docs/CONTRIBUTING.md)
+- **Need help?** → Check [Troubleshooting](docs/TROUBLESHOOTING.md)
+- **All documentation** → See [Documentation Index](docs/README.md)
 
-### 🤖 Data/ML
-![Python](https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white)
-Lightweight logistic baseline and utilities in `scripts/`.
-</td>
-<td>
+---
 
-### ☁️ Infrastructure
-![Vercel](https://img.shields.io/badge/Vercel-000000?style=flat-square&logo=vercel&logoColor=white)
-![Neon](https://img.shields.io/badge/Neon-Postgres-00E599?style=flat-square&logo=postgresql&logoColor=white)
-![pnpm](https://img.shields.io/badge/pnpm-F69220?style=flat-square&logo=pnpm&logoColor=white)
-</td>
-</tr>
-</table>
+## 📖 What It Does
+
+F1-Slipstream is an intelligent chatbot that can:
+
+- Answer questions about current F1 standings and race results
+- Provide historical F1 statistics and records
+- Generate race predictions based on data analysis
+- Search for latest F1 news and updates
+- Explain technical F1 concepts and regulations
+- Maintain context across conversations
+
+**Example Questions:**
+- "Who won the 2023 F1 World Championship?"
+- "What are the current driver standings?"
+- "Predict the outcome of the next race"
+- "Explain DRS in Formula 1"
+
+---
+
+## 🛠️ Tech Stack
+
+### AI & Machine Learning
+- **[LangChain](https://python.langchain.com/)** - Framework for building LLM applications
+- **[LangGraph](https://langchain-ai.github.io/langgraph/)** - Library for building stateful, multi-actor applications with LLMs
+- **[OpenAI GPT](https://platform.openai.com/)** - Large language model for generating responses
+- **[OpenAI Embeddings](https://platform.openai.com/docs/guides/embeddings)** - Text vectorization for semantic search
+
+### Data & Search
+- **[Pinecone](https://www.pinecone.io/)** - Vector database for semantic search and retrieval
+- **[Tavily API](https://tavily.com/)** - Real-time web search API for current information
+
+### Backend
+- **[Python 3.11+](https://www.python.org/)** - Core programming language
+- **[FastAPI](https://fastapi.tiangolo.com/)** - Modern web framework for building APIs
+- **[Pydantic](https://docs.pydantic.dev/)** - Data validation using Python type hints
+- **[Poetry](https://python-poetry.org/)** - Dependency management and packaging
+
+### Frontend
+- **[Streamlit](https://streamlit.io/)** - Framework for building interactive web applications
+
+### Infrastructure
+- **[Docker](https://www.docker.com/)** - Containerization platform
+- **[Render](https://render.com/)** - Cloud hosting platform (free tier available)
+
+### Observability
+- **[Structlog](https://www.structlog.org/)** - Structured logging library
+- **[Prometheus](https://prometheus.io/)** - Monitoring and alerting toolkit
+- **[Grafana](https://grafana.com/)** - Analytics and monitoring platform
+
+---
 
 ## 🏗️ Architecture
 
-```mermaid
-graph TD
-  A[🏁 Raw Data] --> B[⚙️ Feature Engineering]
-  B --> C[� Baseline Scoring]
-  C --> D[⚡ API Functions]
-  D --> E[🎨 Next.js UI]
-    
-    style A fill:#E10600,stroke:#2F2F2F,stroke-width:2px,color:#FFFFFF
-    style B fill:#1E1E1E,stroke:#E10600,stroke-width:2px,color:#FFFFFF
-  style C fill:#2F2F2F,stroke:#E10600,stroke-width:2px,color:#FFFFFF
-  style D fill:#1E1E1E,stroke:#E10600,stroke-width:2px,color:#FFFFFF
-  style E fill:#2F2F2F,stroke:#E10600,stroke-width:2px,color:#FFFFFF
-    
-    linkStyle default stroke:#E10600,stroke-width:2px
 ```
-- Feature engineering: aggregates last N races, team/driver deltas, track-specific effects, weather proxies (if present).
-- Baseline model: logistic with coefficients stored in Postgres or JSON.
-- UI: Next.js App Router, streaming chat, Tailwind v4 layer utilities.
+User Input
+    ↓
+Streamlit UI
+    ↓
+LangGraph Agent
+    ├── Query Analysis
+    ├── Routing (Vector Search / Web Search)
+    ├── Context Ranking
+    └── LLM Generation
+    ↓
+Response with Citations
+```
+
+**Key Components:**
+- **RAG Pipeline**: Combines vector search with LLM generation for accurate, grounded responses
+- **Multi-Source Integration**: Retrieves from both historical data (Pinecone) and real-time web (Tavily)
+- **Intelligent Routing**: Automatically determines the best data source for each query
+- **Rate Limiting**: Built-in protection to stay within free tier limits
+
+---
 
 ## 🚀 Quick Start
 
+### Prerequisites
+
+- Python 3.11 or higher
+- [Poetry](https://python-poetry.org/docs/#installation) - Python dependency manager
+- API Keys (all have free tiers):
+  - [OpenAI API Key](https://platform.openai.com/api-keys)
+  - [Pinecone API Key](https://app.pinecone.io/)
+  - [Tavily API Key](https://app.tavily.com/)
+
+### Local Development
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/YOUR_USERNAME/f1-slipstream.git
+   cd f1-slipstream
+   ```
+
+2. **Install dependencies**
+   ```bash
+   poetry install
+   ```
+
+3. **Set up environment variables**
+   ```bash
+   cp .env.example .env
+   # Edit .env and add your API keys
+   ```
+
+4. **Run the application**
+   ```bash
+   # Option 1: Streamlit UI (recommended for testing)
+   poetry run streamlit run src/ui/app.py
+   
+   # Option 2: FastAPI backend
+   poetry run uvicorn src.api.main:app --reload
+   ```
+
+5. **Access the application**
+   - Streamlit UI: http://localhost:8501
+   - FastAPI docs: http://localhost:8000/docs
+
+### Docker
+
 ```bash
-corepack enable
-pnpm i
-pnpm --filter web dev
+# Build and run with Docker Compose
+docker-compose up --build
+
+# Access at:
+# - UI: http://localhost:8501
+# - API: http://localhost:8000
 ```
 
-Environment variables:
-- NEON_DATABASE_URL (optional; required for evals/seeding)
-- GROQ_API_KEY (optional; for agent answers via Groq LLM)
+---
 
-## Agent & Evals
+## 📚 Documentation
 
-- Agent API: `/api/agent` uses Groq (Llama 3.1) with two tools: `get_prediction`, `run_eval`.
-- Input normalization: free-form names like “Lando Norris” → `NOR`, “British GP 2024” → `2024_gbr`.
-- Evals API: `/api/evals/run` shells out to `scripts/run_eval.ts`.
-  - Dev: runs via tsx from repo root; requires `NEON_DATABASE_URL`.
-  - Prod/serverless: falls back to node; if process spawn is blocked, returns diagnostics.
+### Getting Started
+- **[Setup Guide](docs/SETUP.md)** - Complete local development setup with troubleshooting
+- **[Deployment Guide](docs/DEPLOYMENT.md)** - Deploy to Render for free in 15 minutes
+- **[Contributing Guide](docs/CONTRIBUTING.md)** - Guidelines for contributing to the project
 
-## 📊 Datasets
-- `data/historical_features.csv` for training/evals
-- `data/model.json` for seed coefficients
+### Technical Documentation
+- **[Architecture Overview](docs/ARCHITECTURE.md)** - System design and component architecture
+- **[API Reference](docs/API.md)** - REST API endpoints and usage
+- **[Security Guide](docs/SECURITY.md)** - Security best practices and implementation
+- **[Observability](docs/OBSERVABILITY.md)** - Monitoring, logging, and alerting setup
+- **[Troubleshooting](docs/TROUBLESHOOTING.md)** - Common issues and solutions
+
+**[📖 Full Documentation Index](docs/README.md)**
+
+---
+
+## 🎯 Deployment
+
+Deploy your own instance for free using Render:
+
+1. **Quick Deploy** (15 minutes)
+   ```bash
+   ./scripts/deploy_to_render.sh
+   ```
+
+2. **Manual Deploy**
+   - Follow the step-by-step guide in [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
+
+**Free Tier Costs:**
+- Render: $0 (750 hours/month)
+- OpenAI: $0-5 ($5 free credit)
+- Pinecone: $0 (100K vectors)
+- Tavily: $0 (1000 searches/month)
+
+**Total: $0-5/month**
+
+---
 
 ## 🧪 Testing
-This project currently focuses on end-to-end behavior. Add unit/integration tests as you evolve the model and UI.
 
-## 🔄 CI/CD
-Build and deploy via Vercel and pnpm workspaces. Add a CI workflow when tests land.
+```bash
+# Run all tests
+poetry run pytest
 
-## 🔮 Future work
-- Per-track and per-session feature weights
-- Live data ingestion (OpenF1) for FP/Quali deltas
-- Model cards and dataset documentation
-- Background job for evals (no child_process), plus tracing
-- Richer attributions with visual breakdowns per driver
+# Run with coverage
+poetry run pytest --cov=src --cov-report=html
+
+# Run specific test types
+poetry run pytest -m unit        # Unit tests only
+poetry run pytest -m integration # Integration tests only
+```
+
+---
+
+## 📁 Project Structure
+
+```
+f1-slipstream/
+├── src/                      # Source code
+│   ├── agent/               # LangGraph agent implementation
+│   ├── api/                 # FastAPI endpoints
+│   ├── config/              # Configuration management
+│   ├── ingestion/           # Data ingestion pipeline
+│   ├── prompts/             # LLM prompt templates
+│   ├── search/              # Tavily search integration
+│   ├── tools/               # LangChain tools
+│   ├── ui/                  # Streamlit interface
+│   ├── utils/               # Utility functions
+│   └── vector_store/        # Pinecone integration
+├── tests/                   # Test suite
+├── scripts/                 # Deployment and utility scripts
+├── docs/                    # Documentation
+│   ├── README.md           # Documentation index
+│   ├── SETUP.md            # Local setup guide
+│   ├── DEPLOYMENT.md       # Deployment guide
+│   ├── CONTRIBUTING.md     # Contribution guidelines
+│   ├── ARCHITECTURE.md     # System architecture
+│   ├── API.md              # API reference
+│   └── ...                 # Additional technical docs
+├── monitoring/              # Prometheus & Grafana configs
+├── pyproject.toml          # Poetry dependencies
+├── Dockerfile              # Docker configuration
+└── README.md               # This file (start here!)
+```
+
+---
+
+## 🔒 Security & Rate Limiting
+
+- API keys stored as environment variables (never committed)
+- Input validation and sanitization
+- Rate limiting: 3 requests/minute, 100 requests/day per user
+- HTTPS encryption (automatic on Render)
+- No storage of personally identifiable information (PII)
+
+---
+
+## 💰 Cost Optimization
+
+The application is designed to run entirely on free tiers:
+
+| Service | Free Tier | Usage Strategy |
+|---------|-----------|----------------|
+| Render | 750 hrs/month | Auto-sleep after 15min inactivity |
+| OpenAI | $5 credit | Rate limited to 3 RPM, 200 RPD |
+| Pinecone | 100K vectors | Efficient text chunking |
+| Tavily | 1000/month | Limited to 30 searches/day |
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please see [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) for guidelines.
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+---
 
 ## 📄 License
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=for-the-badge)](LICENSE)
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 🙏 Acknowledgments
+
+- Formula 1 data and statistics
+- LangChain and LangGraph communities
+- OpenAI for GPT models
+- Pinecone for vector database
+- Tavily for search API
+
+---
+
+## 📞 Contact
+
+- **GitHub**: [Your GitHub Profile]
+- **LinkedIn**: [Your LinkedIn Profile]
+- **Email**: [Your Email]
+
+---
+
+**Built with ❤️ for Formula 1 fans and AI enthusiasts**
