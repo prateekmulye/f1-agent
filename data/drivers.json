@@ -1,0 +1,202 @@
+[
+  {
+    "id": "VER",
+    "code": "VER",
+    "number": 1,
+    "name": "Max Verstappen",
+    "constructor": "Red Bull Racing",
+    "constructorPoints": 589,
+    "nationality": "Dutch",
+    "flag": "🇳🇱"
+  },
+  {
+    "id": "PER",
+    "code": "PER",
+    "number": 11,
+    "name": "Sergio Perez",
+    "constructor": "Red Bull Racing",
+    "constructorPoints": 589,
+    "nationality": "Mexican",
+    "flag": "🇲🇽"
+  },
+  {
+    "id": "NOR",
+    "code": "NOR",
+    "number": 4,
+    "name": "Lando Norris",
+    "constructor": "McLaren",
+    "constructorPoints": 544,
+    "nationality": "British",
+    "flag": "🇬🇧"
+  },
+  {
+    "id": "PIA",
+    "code": "PIA",
+    "number": 81,
+    "name": "Oscar Piastri",
+    "constructor": "McLaren",
+    "constructorPoints": 544,
+    "nationality": "Australian",
+    "flag": "🇦🇺"
+  },
+  {
+    "id": "LEC",
+    "code": "LEC",
+    "number": 16,
+    "name": "Charles Leclerc",
+    "constructor": "Ferrari",
+    "constructorPoints": 537,
+    "nationality": "Monégasque",
+    "flag": "🇲🇨"
+  },
+  {
+    "id": "HAM",
+    "code": "HAM",
+    "number": 44,
+    "name": "Lewis Hamilton",
+    "constructor": "Ferrari",
+    "constructorPoints": 537,
+    "nationality": "British",
+    "flag": "🇬🇧"
+  },
+  {
+    "id": "RUS",
+    "code": "RUS",
+    "number": 63,
+    "name": "George Russell",
+    "constructor": "Mercedes",
+    "constructorPoints": 382,
+    "nationality": "British",
+    "flag": "🇬🇧"
+  },
+  {
+    "id": "ANT",
+    "code": "ANT",
+    "number": 12,
+    "name": "Kimi Antonelli",
+    "constructor": "Mercedes",
+    "constructorPoints": 382,
+    "nationality": "Italian",
+    "flag": "🇮🇹"
+  },
+  {
+    "id": "ALO",
+    "code": "ALO",
+    "number": 14,
+    "name": "Fernando Alonso",
+    "constructor": "Aston Martin",
+    "constructorPoints": 94,
+    "nationality": "Spanish",
+    "flag": "🇪🇸"
+  },
+  {
+    "id": "STR",
+    "code": "STR",
+    "number": 18,
+    "name": "Lance Stroll",
+    "constructor": "Aston Martin",
+    "constructorPoints": 94,
+    "nationality": "Canadian",
+    "flag": "🇨🇦"
+  },
+  {
+    "id": "TSU",
+    "code": "TSU",
+    "number": 22,
+    "name": "Yuki Tsunoda",
+    "constructor": "RB",
+    "constructorPoints": 46,
+    "nationality": "Japanese",
+    "flag": "🇯🇵"
+  },
+  {
+    "id": "LAW",
+    "code": "LAW",
+    "number": 30,
+    "name": "Liam Lawson",
+    "constructor": "RB",
+    "constructorPoints": 46,
+    "nationality": "New Zealander",
+    "flag": "🇳🇿"
+  },
+  {
+    "id": "GAS",
+    "code": "GAS",
+    "number": 10,
+    "name": "Pierre Gasly",
+    "constructor": "Alpine",
+    "constructorPoints": 65,
+    "nationality": "French",
+    "flag": "🇫🇷"
+  },
+  {
+    "id": "OCO",
+    "code": "OCO",
+    "number": 31,
+    "name": "Esteban Ocon",
+    "constructor": "Alpine",
+    "constructorPoints": 65,
+    "nationality": "French",
+    "flag": "🇫🇷"
+  },
+  {
+    "id": "ALB",
+    "code": "ALB",
+    "number": 23,
+    "name": "Alexander Albon",
+    "constructor": "Williams",
+    "constructorPoints": 17,
+    "nationality": "Thai",
+    "flag": "🇹🇭"
+  },
+  {
+    "id": "DOO",
+    "code": "DOO",
+    "number": 45,
+    "name": "Jack Doohan",
+    "constructor": "Williams",
+    "constructorPoints": 17,
+    "nationality": "Australian",
+    "flag": "🇦🇺"
+  },
+  {
+    "id": "HUL",
+    "code": "HUL",
+    "number": 27,
+    "name": "Nico Hulkenberg",
+    "constructor": "Haas",
+    "constructorPoints": 54,
+    "nationality": "German",
+    "flag": "🇩🇪"
+  },
+  {
+    "id": "BEA",
+    "code": "BEA",
+    "number": 50,
+    "name": "Oliver Bearman",
+    "constructor": "Haas",
+    "constructorPoints": 54,
+    "nationality": "British",
+    "flag": "🇬🇧"
+  },
+  {
+    "id": "HAD",
+    "code": "HAD",
+    "number": 25,
+    "name": "Gabriel Bortoleto",
+    "constructor": "Sauber",
+    "constructorPoints": 0,
+    "nationality": "Brazilian",
+    "flag": "🇧🇷"
+  },
+  {
+    "id": "SAI",
+    "code": "SAI",
+    "number": 55,
+    "name": "Carlos Sainz",
+    "constructor": "Sauber",
+    "constructorPoints": 0,
+    "nationality": "Spanish",
+    "flag": "🇪🇸"
+  }
+]

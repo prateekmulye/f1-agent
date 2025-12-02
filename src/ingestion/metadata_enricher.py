@@ -126,7 +126,7 @@ class MetadataEnricher:
             drivers = self._identify_drivers(content)
             if drivers:
                 enriched_metadata["drivers"] = list(drivers)
-                enriched_metadata["driver_id"] = drivers[0]  # Primary driver
+                enriched_metadata["driver_id"] = list(drivers)[0]  # Primary driver
                 self._enrichment_stats["drivers_identified"] += 1
         
         # Identify teams
@@ -134,7 +134,7 @@ class MetadataEnricher:
             teams = self._identify_teams(content)
             if teams:
                 enriched_metadata["teams"] = list(teams)
-                enriched_metadata["constructor_id"] = teams[0]  # Primary team
+                enriched_metadata["constructor_id"] = list(teams)[0]  # Primary team
                 self._enrichment_stats["teams_identified"] += 1
         
         # Identify circuits
@@ -142,7 +142,7 @@ class MetadataEnricher:
             circuits = self._identify_circuits(content)
             if circuits:
                 enriched_metadata["circuits"] = list(circuits)
-                enriched_metadata["circuit_id"] = circuits[0]  # Primary circuit
+                enriched_metadata["circuit_id"] = list(circuits)[0]  # Primary circuit
                 self._enrichment_stats["circuits_identified"] += 1
         
         # Classify category if not already set

@@ -52,17 +52,15 @@ def add_correlation_ids(logger: Any, method_name: str, event_dict: EventDict) ->
     return event_dict
 
 
-def setup_logging(settings: Settings) -> None:
+def setup_logging(log_level: str) -> None:
     """Configure structured logging with JSON formatting.
-    
-    Args:
-        settings: Application settings
     """
+    settings = Settings()
     # Configure standard library logging
     logging.basicConfig(
         format="%(message)s",
         stream=sys.stdout,
-        level=getattr(logging, settings.log_level.upper()),
+        level=getattr(logging, log_level.upper()),
     )
 
     # Define processors based on environment
