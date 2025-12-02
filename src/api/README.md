@@ -327,7 +327,7 @@ The API is configured with CORS middleware to allow requests from:
 - `http://localhost:3000` (Next.js dev server)
 - `http://localhost:8501` (Streamlit)
 - `http://localhost:8000` (API itself)
-- `https://f1-slipstream.vercel.app` (Production frontend)
+- `https://f1-agent-vdeg.onrender.com` (Production frontend)
 
 In production, only the production frontend is allowed.
 
