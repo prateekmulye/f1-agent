@@ -1,0 +1,22 @@
+{
+  "export_timestamp": "2025-12-01T16:19:49.713714",
+  "legacy_data_dir": "data",
+  "export_dir": "apps/f1-slipstream-agent/data/migration/exported",
+  "statistics": {
+    "historical_features_exported": 480,
+    "drivers_exported": 20,
+    "races_exported": 24,
+    "model_coefficients_exported": 5,
+    "circuits_identified": 30,
+    "export_timestamp": "2025-12-01T16:19:49.713714"
+  },
+  "exported_files": [
+    "historical_features.csv",
+    "drivers.json",
+    "races.json",
+    "model_coefficients.json",
+    "dataset_metadata.json",
+    "circuits.json"
+  ],
+  "schema_version": "1.0"
+}

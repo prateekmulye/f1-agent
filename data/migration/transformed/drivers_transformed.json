@@ -1,0 +1,342 @@
+[
+  {
+    "id": "ver",
+    "code": "VER",
+    "number": 1,
+    "name": "Max Verstappen",
+    "full_name": "Max Verstappen",
+    "constructor_id": "red_bull",
+    "constructor_name": "Red Bull Racing",
+    "constructor_points": 589,
+    "nationality": "Dutch",
+    "flag": "🇳🇱",
+    "metadata": {
+      "category": "driver_info",
+      "source": "driver_data",
+      "transformed_at": "2025-12-01T16:24:50.886048"
+    }
+  },
+  {
+    "id": "per",
+    "code": "PER",
+    "number": 11,
+    "name": "Sergio Perez",
+    "full_name": "Sergio Perez",
+    "constructor_id": "red_bull",
+    "constructor_name": "Red Bull Racing",
+    "constructor_points": 589,
+    "nationality": "Mexican",
+    "flag": "🇲🇽",
+    "metadata": {
+      "category": "driver_info",
+      "source": "driver_data",
+      "transformed_at": "2025-12-01T16:24:50.886054"
+    }
+  },
+  {
+    "id": "nor",
+    "code": "NOR",
+    "number": 4,
+    "name": "Lando Norris",
+    "full_name": "Lando Norris",
+    "constructor_id": "mclaren",
+    "constructor_name": "McLaren",
+    "constructor_points": 544,
+    "nationality": "British",
+    "flag": "🇬🇧",
+    "metadata": {
+      "category": "driver_info",
+      "source": "driver_data",
+      "transformed_at": "2025-12-01T16:24:50.886056"
+    }
+  },
+  {
+    "id": "pia",
+    "code": "PIA",
+    "number": 81,
+    "name": "Oscar Piastri",
+    "full_name": "Oscar Piastri",
+    "constructor_id": "mclaren",
+    "constructor_name": "McLaren",
+    "constructor_points": 544,
+    "nationality": "Australian",
+    "flag": "🇦🇺",
+    "metadata": {
+      "category": "driver_info",
+      "source": "driver_data",
+      "transformed_at": "2025-12-01T16:24:50.886058"
+    }
+  },
+  {
+    "id": "lec",
+    "code": "LEC",
+    "number": 16,
+    "name": "Charles Leclerc",
+    "full_name": "Charles Leclerc",
+    "constructor_id": "ferrari",
+    "constructor_name": "Ferrari",
+    "constructor_points": 537,
+    "nationality": "Monégasque",
+    "flag": "🇲🇨",
+    "metadata": {
+      "category": "driver_info",
+      "source": "driver_data",
+      "transformed_at": "2025-12-01T16:24:50.886059"
+    }
+  },
+  {
+    "id": "ham",
+    "code": "HAM",
+    "number": 44,
+    "name": "Lewis Hamilton",
+    "full_name": "Lewis Hamilton",
+    "constructor_id": "ferrari",
+    "constructor_name": "Ferrari",
+    "constructor_points": 537,
+    "nationality": "British",
+    "flag": "🇬🇧",
+    "metadata": {
+      "category": "driver_info",
+      "source": "driver_data",
+      "transformed_at": "2025-12-01T16:24:50.886060"
+    }
+  },
+  {
+    "id": "rus",
+    "code": "RUS",
+    "number": 63,
+    "name": "George Russell",
+    "full_name": "George Russell",
+    "constructor_id": "mercedes",
+    "constructor_name": "Mercedes",
+    "constructor_points": 382,
+    "nationality": "British",
+    "flag": "🇬🇧",
+    "metadata": {
+      "category": "driver_info",
+      "source": "driver_data",
+      "transformed_at": "2025-12-01T16:24:50.886061"
+    }
+  },
+  {
+    "id": "ant",
+    "code": "ANT",
+    "number": 12,
+    "name": "Kimi Antonelli",
+    "full_name": "Kimi Antonelli",
+    "constructor_id": "mercedes",
+    "constructor_name": "Mercedes",
+    "constructor_points": 382,
+    "nationality": "Italian",
+    "flag": "🇮🇹",
+    "metadata": {
+      "category": "driver_info",
+      "source": "driver_data",
+      "transformed_at": "2025-12-01T16:24:50.886062"
+    }
+  },
+  {
+    "id": "alo",
+    "code": "ALO",
+    "number": 14,
+    "name": "Fernando Alonso",
+    "full_name": "Fernando Alonso",
+    "constructor_id": "aston_martin",
+    "constructor_name": "Aston Martin",
+    "constructor_points": 94,
+    "nationality": "Spanish",
+    "flag": "🇪🇸",
+    "metadata": {
+      "category": "driver_info",
+      "source": "driver_data",
+      "transformed_at": "2025-12-01T16:24:50.886063"
+    }
+  },
+  {
+    "id": "str",
+    "code": "STR",
+    "number": 18,
+    "name": "Lance Stroll",
+    "full_name": "Lance Stroll",
+    "constructor_id": "aston_martin",
+    "constructor_name": "Aston Martin",
+    "constructor_points": 94,
+    "nationality": "Canadian",
+    "flag": "🇨🇦",
+    "metadata": {
+      "category": "driver_info",
+      "source": "driver_data",
+      "transformed_at": "2025-12-01T16:24:50.886064"
+    }
+  },
+  {
+    "id": "tsu",
+    "code": "TSU",
+    "number": 22,
+    "name": "Yuki Tsunoda",
+    "full_name": "Yuki Tsunoda",
+    "constructor_id": "rb",
+    "constructor_name": "RB",
+    "constructor_points": 46,
+    "nationality": "Japanese",
+    "flag": "🇯🇵",
+    "metadata": {
+      "category": "driver_info",
+      "source": "driver_data",
+      "transformed_at": "2025-12-01T16:24:50.886065"
+    }
+  },
+  {
+    "id": "law",
+    "code": "LAW",
+    "number": 30,
+    "name": "Liam Lawson",
+    "full_name": "Liam Lawson",
+    "constructor_id": "rb",
+    "constructor_name": "RB",
+    "constructor_points": 46,
+    "nationality": "New Zealander",
+    "flag": "🇳🇿",
+    "metadata": {
+      "category": "driver_info",
+      "source": "driver_data",
+      "transformed_at": "2025-12-01T16:24:50.886066"
+    }
+  },
+  {
+    "id": "gas",
+    "code": "GAS",
+    "number": 10,
+    "name": "Pierre Gasly",
+    "full_name": "Pierre Gasly",
+    "constructor_id": "alpine",
+    "constructor_name": "Alpine",
+    "constructor_points": 65,
+    "nationality": "French",
+    "flag": "🇫🇷",
+    "metadata": {
+      "category": "driver_info",
+      "source": "driver_data",
+      "transformed_at": "2025-12-01T16:24:50.886068"
+    }
+  },
+  {
+    "id": "oco",
+    "code": "OCO",
+    "number": 31,
+    "name": "Esteban Ocon",
+    "full_name": "Esteban Ocon",
+    "constructor_id": "alpine",
+    "constructor_name": "Alpine",
+    "constructor_points": 65,
+    "nationality": "French",
+    "flag": "🇫🇷",
+    "metadata": {
+      "category": "driver_info",
+      "source": "driver_data",
+      "transformed_at": "2025-12-01T16:24:50.886068"
+    }
+  },
+  {
+    "id": "alb",
+    "code": "ALB",
+    "number": 23,
+    "name": "Alexander Albon",
+    "full_name": "Alexander Albon",
+    "constructor_id": "williams",
+    "constructor_name": "Williams",
+    "constructor_points": 17,
+    "nationality": "Thai",
+    "flag": "🇹🇭",
+    "metadata": {
+      "category": "driver_info",
+      "source": "driver_data",
+      "transformed_at": "2025-12-01T16:24:50.886069"
+    }
+  },
+  {
+    "id": "doo",
+    "code": "DOO",
+    "number": 45,
+    "name": "Jack Doohan",
+    "full_name": "Jack Doohan",
+    "constructor_id": "williams",
+    "constructor_name": "Williams",
+    "constructor_points": 17,
+    "nationality": "Australian",
+    "flag": "🇦🇺",
+    "metadata": {
+      "category": "driver_info",
+      "source": "driver_data",
+      "transformed_at": "2025-12-01T16:24:50.886070"
+    }
+  },
+  {
+    "id": "hul",
+    "code": "HUL",
+    "number": 27,
+    "name": "Nico Hulkenberg",
+    "full_name": "Nico Hulkenberg",
+    "constructor_id": "haas",
+    "constructor_name": "Haas",
+    "constructor_points": 54,
+    "nationality": "German",
+    "flag": "🇩🇪",
+    "metadata": {
+      "category": "driver_info",
+      "source": "driver_data",
+      "transformed_at": "2025-12-01T16:24:50.886071"
+    }
+  },
+  {
+    "id": "bea",
+    "code": "BEA",
+    "number": 50,
+    "name": "Oliver Bearman",
+    "full_name": "Oliver Bearman",
+    "constructor_id": "haas",
+    "constructor_name": "Haas",
+    "constructor_points": 54,
+    "nationality": "British",
+    "flag": "🇬🇧",
+    "metadata": {
+      "category": "driver_info",
+      "source": "driver_data",
+      "transformed_at": "2025-12-01T16:24:50.886072"
+    }
+  },
+  {
+    "id": "had",
+    "code": "HAD",
+    "number": 25,
+    "name": "Gabriel Bortoleto",
+    "full_name": "Gabriel Bortoleto",
+    "constructor_id": "sauber",
+    "constructor_name": "Sauber",
+    "constructor_points": 0,
+    "nationality": "Brazilian",
+    "flag": "🇧🇷",
+    "metadata": {
+      "category": "driver_info",
+      "source": "driver_data",
+      "transformed_at": "2025-12-01T16:24:50.886073"
+    }
+  },
+  {
+    "id": "sai",
+    "code": "SAI",
+    "number": 55,
+    "name": "Carlos Sainz",
+    "full_name": "Carlos Sainz",
+    "constructor_id": "sauber",
+    "constructor_name": "Sauber",
+    "constructor_points": 0,
+    "nationality": "Spanish",
+    "flag": "🇪🇸",
+    "metadata": {
+      "category": "driver_info",
+      "source": "driver_data",
+      "transformed_at": "2025-12-01T16:24:50.886074"
+    }
+  }
+]

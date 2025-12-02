@@ -1,9 +1,0 @@
-{
-  "version": 2,
-  "env": {
-    "NODE_OPTIONS": "--max-old-space-size=4096"
-  },
-  "crons": [
-    { "path": "/api/data/openf1/pulse", "schedule": "0 3 * * *" }
-  ]
-}
