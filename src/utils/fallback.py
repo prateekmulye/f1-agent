@@ -15,6 +15,7 @@ T = TypeVar("T")
 
 class ServiceMode(Enum):
     """Service operation modes."""
+
     FULL = "full"  # All services available
     DEGRADED = "degraded"  # Some services unavailable
     MINIMAL = "minimal"  # Only core services available
@@ -22,10 +23,10 @@ class ServiceMode(Enum):
 
 class CachedResponse:
     """Cached response with expiration."""
-    
+
     def __init__(self, data: Any, ttl_seconds: int = 300) -> None:
         """Initialize cached response.
-        
+
         Args:
             data: Response data to cache
             ttl_seconds: Time to live in seconds
@@ -33,11 +34,11 @@ class CachedResponse:
         self.data = data
         self.cached_at = datetime.now()
         self.expires_at = self.cached_at + timedelta(seconds=ttl_seconds)
-    
+
     def is_expired(self) -> bool:
         """Check if cache entry is expired."""
         return datetime.now() > self.expires_at
-    
+
     def get_age_seconds(self) -> float:
         """Get age of cached data in seconds."""
         return (datetime.now() - self.cached_at).total_seconds()
@@ -45,44 +46,44 @@ class CachedResponse:
 
 class ResponseCache:
     """Simple in-memory cache for fallback responses."""
-    
+
     def __init__(self, default_ttl: int = 300) -> None:
         """Initialize response cache.
-        
+
         Args:
             default_ttl: Default time to live in seconds
         """
         self._cache: dict[str, CachedResponse] = {}
         self._default_ttl = default_ttl
-    
+
     def get(self, key: str) -> Optional[Any]:
         """Get cached response if available and not expired.
-        
+
         Args:
             key: Cache key
-            
+
         Returns:
             Cached data or None if not found or expired
         """
         if key not in self._cache:
             return None
-        
+
         cached = self._cache[key]
         if cached.is_expired():
             del self._cache[key]
             logger.debug("cache_expired", key=key)
             return None
-        
+
         logger.info(
             "cache_hit",
             key=key,
             age_seconds=cached.get_age_seconds(),
         )
         return cached.data
-    
+
     def set(self, key: str, data: Any, ttl: Optional[int] = None) -> None:
         """Store response in cache.
-        
+
         Args:
             key: Cache key
             data: Data to cache
@@ -91,28 +92,27 @@ class ResponseCache:
         ttl = ttl or self._default_ttl
         self._cache[key] = CachedResponse(data, ttl)
         logger.debug("cache_set", key=key, ttl=ttl)
-    
+
     def clear(self) -> None:
         """Clear all cached responses."""
         self._cache.clear()
         logger.info("cache_cleared")
-    
+
     def cleanup_expired(self) -> int:
         """Remove expired entries from cache.
-        
+
         Returns:
             Number of entries removed
         """
         expired_keys = [
-            key for key, cached in self._cache.items()
-            if cached.is_expired()
+            key for key, cached in self._cache.items() if cached.is_expired()
         ]
         for key in expired_keys:
             del self._cache[key]
-        
+
         if expired_keys:
             logger.debug("cache_cleanup", removed_count=len(expired_keys))
-        
+
         return len(expired_keys)
 
 
@@ -127,11 +127,11 @@ def get_response_cache() -> ResponseCache:
 
 class FallbackChain(Generic[T]):
     """Chain of fallback strategies for resilient service calls.
-    
+
     Attempts primary function, then falls back through a chain of alternatives
     if the primary fails. Supports caching and degraded mode notifications.
     """
-    
+
     def __init__(
         self,
         primary: Callable[..., T],
@@ -140,7 +140,7 @@ class FallbackChain(Generic[T]):
         use_cache: bool = True,
     ) -> None:
         """Initialize fallback chain.
-        
+
         Args:
             primary: Primary function to call
             fallbacks: List of fallback functions in order of preference
@@ -152,17 +152,17 @@ class FallbackChain(Generic[T]):
         self.cache_key_fn = cache_key_fn
         self.use_cache = use_cache
         self._cache = get_response_cache()
-    
+
     async def execute(self, *args: Any, **kwargs: Any) -> tuple[T, ServiceMode]:
         """Execute with fallback chain.
-        
+
         Args:
             *args: Positional arguments
             **kwargs: Keyword arguments
-            
+
         Returns:
             Tuple of (result, service_mode)
-            
+
         Raises:
             Exception: If all attempts fail
         """
@@ -177,29 +177,29 @@ class FallbackChain(Generic[T]):
                     function=self.primary.__name__,
                 )
                 return cached, ServiceMode.FULL
-        
+
         # Try primary function
         try:
             logger.debug(
                 "fallback_primary_attempt",
                 function=self.primary.__name__,
             )
-            
+
             if asyncio.iscoroutinefunction(self.primary):
                 result = await self.primary(*args, **kwargs)
             else:
                 result = self.primary(*args, **kwargs)
-            
+
             # Cache successful result
             if self.use_cache and cache_key:
                 self._cache.set(cache_key, result)
-            
+
             logger.info(
                 "fallback_primary_success",
                 function=self.primary.__name__,
             )
             return result, ServiceMode.FULL
-            
+
         except Exception as primary_error:
             logger.warning(
                 "fallback_primary_failed",
@@ -207,7 +207,7 @@ class FallbackChain(Generic[T]):
                 error=str(primary_error),
                 error_type=type(primary_error).__name__,
             )
-            
+
             # Try fallbacks in order
             for i, fallback in enumerate(self.fallbacks):
                 try:
@@ -216,22 +216,22 @@ class FallbackChain(Generic[T]):
                         function=fallback.__name__,
                         fallback_index=i,
                     )
-                    
+
                     if asyncio.iscoroutinefunction(fallback):
                         result = await fallback(*args, **kwargs)
                     else:
                         result = fallback(*args, **kwargs)
-                    
+
                     logger.info(
                         "fallback_success",
                         function=fallback.__name__,
                         fallback_index=i,
                     )
-                    
+
                     # Determine service mode based on which fallback succeeded
                     mode = ServiceMode.DEGRADED if i == 0 else ServiceMode.MINIMAL
                     return result, mode
-                    
+
                 except Exception as fallback_error:
                     logger.warning(
                         "fallback_failed",
@@ -241,7 +241,7 @@ class FallbackChain(Generic[T]):
                         error_type=type(fallback_error).__name__,
                     )
                     continue
-            
+
             # All attempts failed
             logger.error(
                 "fallback_exhausted",
@@ -259,42 +259,42 @@ async def tavily_search_with_fallback(
     **kwargs: Any,
 ) -> tuple[Any, ServiceMode]:
     """Execute Tavily search with vector store fallback.
-    
+
     Args:
         search_fn: Tavily search function
         vector_search_fn: Vector store search function
         *args: Search arguments
         **kwargs: Search keyword arguments
-        
+
     Returns:
         Tuple of (results, service_mode)
     """
-    
+
     async def vector_only_fallback(*args: Any, **kwargs: Any) -> Any:
         """Fallback to vector store only."""
         logger.info("tavily_fallback_vector_only")
         return await vector_search_fn(*args, **kwargs)
-    
+
     async def cached_fallback(*args: Any, **kwargs: Any) -> Any:
         """Fallback to cached response."""
         cache = get_response_cache()
         query = kwargs.get("query") or (args[0] if args else "")
         cache_key = f"tavily_search:{query}"
         cached = cache.get(cache_key)
-        
+
         if cached:
             logger.info("tavily_fallback_cache")
             return cached
-        
+
         raise SearchAPIError("No cached response available")
-    
+
     chain = FallbackChain(
         primary=search_fn,
         fallbacks=[vector_only_fallback, cached_fallback],
         cache_key_fn=lambda *args, **kwargs: f"tavily:{kwargs.get('query', args[0] if args else '')}",
         use_cache=True,
     )
-    
+
     return await chain.execute(*args, **kwargs)
 
 
@@ -304,36 +304,36 @@ async def vector_search_with_fallback(
     **kwargs: Any,
 ) -> tuple[Any, ServiceMode]:
     """Execute vector search with cache fallback.
-    
+
     Args:
         vector_search_fn: Vector store search function
         *args: Search arguments
         **kwargs: Search keyword arguments
-        
+
     Returns:
         Tuple of (results, service_mode)
     """
-    
+
     async def cached_fallback(*args: Any, **kwargs: Any) -> Any:
         """Fallback to cached response."""
         cache = get_response_cache()
         query = kwargs.get("query") or (args[0] if args else "")
         cache_key = f"vector_search:{query}"
         cached = cache.get(cache_key)
-        
+
         if cached:
             logger.info("vector_fallback_cache")
             return cached
-        
+
         raise VectorStoreError("No cached response available")
-    
+
     chain = FallbackChain(
         primary=vector_search_fn,
         fallbacks=[cached_fallback],
         cache_key_fn=lambda *args, **kwargs: f"vector:{kwargs.get('query', args[0] if args else '')}",
         use_cache=True,
     )
-    
+
     return await chain.execute(*args, **kwargs)
 
 
@@ -343,16 +343,16 @@ async def llm_generate_with_fallback(
     **kwargs: Any,
 ) -> tuple[Any, ServiceMode]:
     """Execute LLM generation with cache fallback.
-    
+
     Args:
         generate_fn: LLM generation function
         *args: Generation arguments
         **kwargs: Generation keyword arguments
-        
+
     Returns:
         Tuple of (results, service_mode)
     """
-    
+
     async def cached_fallback(*args: Any, **kwargs: Any) -> Any:
         """Fallback to cached response."""
         cache = get_response_cache()
@@ -360,36 +360,36 @@ async def llm_generate_with_fallback(
         # Use first 100 chars of prompt for cache key
         cache_key = f"llm:{prompt[:100]}"
         cached = cache.get(cache_key)
-        
+
         if cached:
             logger.info("llm_fallback_cache")
             return cached
-        
+
         raise LLMError("No cached response available")
-    
+
     chain = FallbackChain(
         primary=generate_fn,
         fallbacks=[cached_fallback],
         cache_key_fn=lambda *args, **kwargs: f"llm:{str(kwargs.get('prompt', args[0] if args else ''))[:100]}",
         use_cache=True,
     )
-    
+
     return await chain.execute(*args, **kwargs)
 
 
 def get_degraded_mode_message(mode: ServiceMode, service: str) -> str:
     """Get user-friendly message for degraded mode.
-    
+
     Args:
         mode: Current service mode
         service: Name of the service
-        
+
     Returns:
         User-friendly message
     """
     if mode == ServiceMode.FULL:
         return ""
-    
+
     messages = {
         ServiceMode.DEGRADED: {
             "tavily": "⚠️ Real-time search is temporarily unavailable. Using historical data only.",
@@ -402,5 +402,7 @@ def get_degraded_mode_message(mode: ServiceMode, service: str) -> str:
             "llm": "⚠️ AI services are limited. Showing cached responses.",
         },
     }
-    
-    return messages.get(mode, {}).get(service, "⚠️ Service is operating in degraded mode.")
+
+    return messages.get(mode, {}).get(
+        service, "⚠️ Service is operating in degraded mode."
+    )

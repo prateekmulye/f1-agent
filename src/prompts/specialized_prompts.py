@@ -19,27 +19,24 @@ from pydantic import BaseModel, Field
 # Query Analysis Prompts (Intent Detection)
 # ============================================================================
 
+
 class QueryIntent(BaseModel):
     """Structured output for query analysis."""
-    
+
     intent: str = Field(
         description="Primary intent: 'current_info', 'historical', 'prediction', 'comparison', 'explanation', 'general'"
     )
     entities: Dict[str, List[str]] = Field(
         description="Extracted entities: drivers, teams, races, years, circuits"
     )
-    requires_search: bool = Field(
-        description="Whether query requires real-time search"
-    )
+    requires_search: bool = Field(description="Whether query requires real-time search")
     requires_vector: bool = Field(
         description="Whether query requires historical knowledge base"
     )
     complexity: str = Field(
         description="Query complexity: 'simple', 'moderate', 'complex'"
     )
-    confidence: float = Field(
-        description="Confidence in intent classification (0-1)"
-    )
+    confidence: float = Field(description="Confidence in intent classification (0-1)")
 
 
 QUERY_ANALYSIS_TEMPLATE = """Analyze the following F1-related query and extract structured information.
@@ -70,31 +67,40 @@ Analyze the query and provide the structured output.
 
 def create_query_analysis_prompt() -> tuple[ChatPromptTemplate, PydanticOutputParser]:
     """Create query analysis prompt with structured output parser.
-    
+
     Returns:
         Tuple of (prompt_template, output_parser)
     """
     parser = PydanticOutputParser(pydantic_object=QueryIntent)
-    
+
     prompt = PromptTemplate(
         template=QUERY_ANALYSIS_TEMPLATE,
         input_variables=["query"],
         partial_variables={"format_instructions": parser.get_format_instructions()},
     )
-    
-    return ChatPromptTemplate.from_messages([
-        ("system", "You are an expert at analyzing F1 queries and extracting structured information."),
-        ("human", prompt.template),
-    ]), parser
+
+    return (
+        ChatPromptTemplate.from_messages(
+            [
+                (
+                    "system",
+                    "You are an expert at analyzing F1 queries and extracting structured information.",
+                ),
+                ("human", prompt.template),
+            ]
+        ),
+        parser,
+    )
 
 
 # ============================================================================
 # Prediction Prompts with Structured Output
 # ============================================================================
 
+
 class RacePrediction(BaseModel):
     """Structured output for race predictions."""
-    
+
     race_name: str = Field(description="Name of the race")
     circuit: str = Field(description="Circuit name")
     predicted_winner: str = Field(description="Predicted race winner")
@@ -102,22 +108,15 @@ class RacePrediction(BaseModel):
     confidence_level: str = Field(
         description="Confidence level: 'low', 'medium', 'high'"
     )
-    confidence_score: float = Field(
-        description="Numerical confidence (0-1)"
-    )
-    key_factors: List[str] = Field(
-        description="Key factors influencing prediction"
-    )
-    reasoning: str = Field(
-        description="Detailed explanation of prediction reasoning"
-    )
+    confidence_score: float = Field(description="Numerical confidence (0-1)")
+    key_factors: List[str] = Field(description="Key factors influencing prediction")
+    reasoning: str = Field(description="Detailed explanation of prediction reasoning")
     alternative_scenarios: Optional[List[str]] = Field(
-        default=None,
-        description="Alternative outcomes and conditions"
+        default=None, description="Alternative outcomes and conditions"
     )
 
 
-PREDICTION_TEMPLATE = """You are F1-Slipstream, an expert F1 analyst making race predictions.
+PREDICTION_TEMPLATE = """You are ChatFormula1, an expert F1 analyst making race predictions.
 
 **Race Information:**
 {race_info}
@@ -155,12 +154,12 @@ Provide your structured prediction with detailed reasoning.
 
 def create_prediction_prompt() -> tuple[ChatPromptTemplate, PydanticOutputParser]:
     """Create race prediction prompt with structured output.
-    
+
     Returns:
         Tuple of (prompt_template, output_parser)
     """
     parser = PydanticOutputParser(pydantic_object=RacePrediction)
-    
+
     prompt = PromptTemplate(
         template=PREDICTION_TEMPLATE,
         input_variables=[
@@ -171,11 +170,19 @@ def create_prediction_prompt() -> tuple[ChatPromptTemplate, PydanticOutputParser
         ],
         partial_variables={"format_instructions": parser.get_format_instructions()},
     )
-    
-    return ChatPromptTemplate.from_messages([
-        ("system", "You are an expert F1 analyst specializing in race predictions."),
-        ("human", prompt.template),
-    ]), parser
+
+    return (
+        ChatPromptTemplate.from_messages(
+            [
+                (
+                    "system",
+                    "You are an expert F1 analyst specializing in race predictions.",
+                ),
+                ("human", prompt.template),
+            ]
+        ),
+        parser,
+    )
 
 
 # ============================================================================
@@ -240,7 +247,7 @@ Reasoning: While Monaco traditionally favors Ferrari and Leclerc has home advant
 
 def create_few_shot_query_analysis_prompt() -> FewShotPromptTemplate:
     """Create few-shot prompt for query analysis.
-    
+
     Returns:
         FewShotPromptTemplate with examples
     """
@@ -248,7 +255,7 @@ def create_few_shot_query_analysis_prompt() -> FewShotPromptTemplate:
         input_variables=["query", "output"],
         template="Query: {query}\nAnalysis: {output}",
     )
-    
+
     return FewShotPromptTemplate(
         examples=QUERY_ANALYSIS_EXAMPLES,
         example_prompt=example_prompt,
@@ -260,7 +267,7 @@ def create_few_shot_query_analysis_prompt() -> FewShotPromptTemplate:
 
 def create_few_shot_prediction_prompt() -> FewShotPromptTemplate:
     """Create few-shot prompt for race predictions.
-    
+
     Returns:
         FewShotPromptTemplate with prediction examples
     """
@@ -268,7 +275,7 @@ def create_few_shot_prediction_prompt() -> FewShotPromptTemplate:
         input_variables=["input", "output"],
         template="Request: {input}\nPrediction: {output}",
     )
-    
+
     return FewShotPromptTemplate(
         examples=PREDICTION_EXAMPLES,
         example_prompt=example_prompt,
@@ -282,7 +289,7 @@ def create_few_shot_prediction_prompt() -> FewShotPromptTemplate:
 # Chain-of-Thought Prompts for Complex Reasoning
 # ============================================================================
 
-CHAIN_OF_THOUGHT_TEMPLATE = """You are F1-Slipstream, solving a complex F1 analysis question.
+CHAIN_OF_THOUGHT_TEMPLATE = """You are ChatFormula1, solving a complex F1 analysis question.
 
 **Question:** {query}
 
@@ -327,21 +334,26 @@ CHAIN_OF_THOUGHT_PROMPT = PromptTemplate(
 
 def create_chain_of_thought_prompt() -> ChatPromptTemplate:
     """Create chain-of-thought prompt for complex reasoning.
-    
+
     Returns:
         ChatPromptTemplate with CoT structure
     """
-    return ChatPromptTemplate.from_messages([
-        ("system", "You are an expert F1 analyst who thinks step-by-step through complex problems."),
-        ("human", CHAIN_OF_THOUGHT_TEMPLATE),
-    ])
+    return ChatPromptTemplate.from_messages(
+        [
+            (
+                "system",
+                "You are an expert F1 analyst who thinks step-by-step through complex problems.",
+            ),
+            ("human", CHAIN_OF_THOUGHT_TEMPLATE),
+        ]
+    )
 
 
 # ============================================================================
 # Comparison Analysis Prompt
 # ============================================================================
 
-COMPARISON_TEMPLATE = """You are F1-Slipstream, conducting a detailed comparison analysis.
+COMPARISON_TEMPLATE = """You are ChatFormula1, conducting a detailed comparison analysis.
 
 **Comparison Request:** {query}
 
@@ -391,7 +403,7 @@ COMPARISON_PROMPT = PromptTemplate(
 # Technical Explanation Prompt
 # ============================================================================
 
-TECHNICAL_EXPLANATION_TEMPLATE = """You are F1-Slipstream, explaining F1 technical concepts clearly.
+TECHNICAL_EXPLANATION_TEMPLATE = """You are ChatFormula1, explaining F1 technical concepts clearly.
 
 **Topic:** {topic}
 
@@ -433,10 +445,10 @@ def create_technical_explanation_prompt(
     knowledge_level: str = "intermediate",
 ) -> PromptTemplate:
     """Create technical explanation prompt tailored to user knowledge.
-    
+
     Args:
         knowledge_level: User's F1 knowledge (beginner, intermediate, expert)
-        
+
     Returns:
         PromptTemplate for technical explanations
     """
@@ -445,9 +457,9 @@ def create_technical_explanation_prompt(
         "intermediate": "Balance technical terms with explanations, assume basic F1 knowledge",
         "expert": "Use technical terminology freely, focus on nuanced details",
     }
-    
+
     tone = tone_instructions.get(knowledge_level, tone_instructions["intermediate"])
-    
+
     return PromptTemplate(
         template=TECHNICAL_EXPLANATION_TEMPLATE,
         input_variables=["topic", "technical_context"],
@@ -462,16 +474,23 @@ def create_technical_explanation_prompt(
 # Entity Extraction Prompt
 # ============================================================================
 
+
 class ExtractedEntities(BaseModel):
     """Structured output for entity extraction."""
-    
-    drivers: List[str] = Field(default_factory=list, description="Driver names mentioned")
+
+    drivers: List[str] = Field(
+        default_factory=list, description="Driver names mentioned"
+    )
     teams: List[str] = Field(default_factory=list, description="Team names mentioned")
-    circuits: List[str] = Field(default_factory=list, description="Circuit names mentioned")
+    circuits: List[str] = Field(
+        default_factory=list, description="Circuit names mentioned"
+    )
     races: List[str] = Field(default_factory=list, description="Race names mentioned")
     years: List[int] = Field(default_factory=list, description="Years mentioned")
     seasons: List[int] = Field(default_factory=list, description="Seasons mentioned")
-    technical_terms: List[str] = Field(default_factory=list, description="Technical F1 terms")
+    technical_terms: List[str] = Field(
+        default_factory=list, description="Technical F1 terms"
+    )
 
 
 ENTITY_EXTRACTION_TEMPLATE = """Extract all F1-related entities from the following text.
@@ -494,16 +513,16 @@ Extract all entities from the text.
 
 def create_entity_extraction_prompt() -> tuple[PromptTemplate, PydanticOutputParser]:
     """Create entity extraction prompt with structured output.
-    
+
     Returns:
         Tuple of (prompt_template, output_parser)
     """
     parser = PydanticOutputParser(pydantic_object=ExtractedEntities)
-    
+
     prompt = PromptTemplate(
         template=ENTITY_EXTRACTION_TEMPLATE,
         input_variables=["text"],
         partial_variables={"format_instructions": parser.get_format_instructions()},
     )
-    
+
     return prompt, parser

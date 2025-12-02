@@ -22,7 +22,7 @@ logger = structlog.get_logger(__name__)
 @dataclass
 class LatencyMetric:
     """Latency metric data."""
-    
+
     operation: str
     duration_ms: float
     timestamp: datetime
@@ -33,7 +33,7 @@ class LatencyMetric:
 @dataclass
 class TokenUsageMetric:
     """Token usage and cost metric data."""
-    
+
     model: str
     prompt_tokens: int
     completion_tokens: int
@@ -47,7 +47,7 @@ class TokenUsageMetric:
 @dataclass
 class UserFeedbackMetric:
     """User satisfaction feedback metric."""
-    
+
     session_id: str
     message_id: str
     rating: int  # 1 (thumbs down) or 5 (thumbs up)
@@ -58,35 +58,35 @@ class UserFeedbackMetric:
 
 class MetricsCollector:
     """Centralized metrics collector for application observability.
-    
+
     This class collects and aggregates metrics in memory. In production,
     these metrics should be exported to a monitoring system like Prometheus,
     Datadog, or CloudWatch.
     """
-    
+
     def __init__(self):
         """Initialize metrics collector."""
         self._lock = Lock()
-        
+
         # Latency metrics
         self._latency_metrics: List[LatencyMetric] = []
-        
+
         # Token usage metrics
         self._token_metrics: List[TokenUsageMetric] = []
-        
+
         # User feedback metrics
         self._feedback_metrics: List[UserFeedbackMetric] = []
-        
+
         # API call counters
         self._api_calls: Dict[str, Dict[str, int]] = defaultdict(
             lambda: {"success": 0, "failure": 0}
         )
-        
+
         # Operation counters
         self._operation_counts: Dict[str, int] = defaultdict(int)
-        
+
         logger.info("metrics_collector_initialized")
-    
+
     def record_latency(
         self,
         operation: str,
@@ -95,7 +95,7 @@ class MetricsCollector:
         **metadata: Any,
     ) -> None:
         """Record a latency metric.
-        
+
         Args:
             operation: Name of the operation
             duration_ms: Duration in milliseconds
@@ -109,18 +109,18 @@ class MetricsCollector:
             success=success,
             metadata=metadata,
         )
-        
+
         with self._lock:
             self._latency_metrics.append(metric)
             self._operation_counts[operation] += 1
-        
+
         logger.debug(
             "latency_metric_recorded",
             operation=operation,
             duration_ms=duration_ms,
             success=success,
         )
-    
+
     def record_token_usage(
         self,
         model: str,
@@ -130,7 +130,7 @@ class MetricsCollector:
         **metadata: Any,
     ) -> None:
         """Record token usage and estimated cost.
-        
+
         Args:
             model: Model name (e.g., "gpt-4-turbo")
             prompt_tokens: Number of prompt tokens
@@ -139,16 +139,15 @@ class MetricsCollector:
             **metadata: Additional metadata
         """
         total_tokens = prompt_tokens + completion_tokens
-        
+
         # Estimate cost based on model pricing (as of 2024)
         cost_per_1k_prompt = self._get_prompt_cost(model)
         cost_per_1k_completion = self._get_completion_cost(model)
-        
-        estimated_cost = (
-            (prompt_tokens / 1000) * cost_per_1k_prompt +
-            (completion_tokens / 1000) * cost_per_1k_completion
-        )
-        
+
+        estimated_cost = (prompt_tokens / 1000) * cost_per_1k_prompt + (
+            completion_tokens / 1000
+        ) * cost_per_1k_completion
+
         metric = TokenUsageMetric(
             model=model,
             prompt_tokens=prompt_tokens,
@@ -159,10 +158,10 @@ class MetricsCollector:
             operation=operation,
             metadata=metadata,
         )
-        
+
         with self._lock:
             self._token_metrics.append(metric)
-        
+
         logger.info(
             "token_usage_recorded",
             model=model,
@@ -172,29 +171,29 @@ class MetricsCollector:
             estimated_cost_usd=round(estimated_cost, 6),
             operation=operation,
         )
-    
+
     def record_api_call(
         self,
         service: str,
         success: bool,
     ) -> None:
         """Record an API call result.
-        
+
         Args:
             service: Service name (e.g., "openai", "pinecone", "tavily")
             success: Whether the call succeeded
         """
         status = "success" if success else "failure"
-        
+
         with self._lock:
             self._api_calls[service][status] += 1
-        
+
         logger.debug(
             "api_call_recorded",
             service=service,
             success=success,
         )
-    
+
     def record_user_feedback(
         self,
         session_id: str,
@@ -204,7 +203,7 @@ class MetricsCollector:
         **metadata: Any,
     ) -> None:
         """Record user satisfaction feedback.
-        
+
         Args:
             session_id: Session identifier
             message_id: Message identifier
@@ -219,7 +218,7 @@ class MetricsCollector:
                 message="Rating must be 1 or 5",
             )
             return
-        
+
         metric = UserFeedbackMetric(
             session_id=session_id,
             message_id=message_id,
@@ -228,10 +227,10 @@ class MetricsCollector:
             feedback_text=feedback_text,
             metadata=metadata,
         )
-        
+
         with self._lock:
             self._feedback_metrics.append(metric)
-        
+
         logger.info(
             "user_feedback_recorded",
             session_id=session_id,
@@ -239,37 +238,37 @@ class MetricsCollector:
             rating=rating,
             has_text=feedback_text is not None,
         )
-    
+
     def get_latency_stats(
         self,
         operation: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Get latency statistics.
-        
+
         Args:
             operation: Optional operation name to filter by
-            
+
         Returns:
             Dictionary with latency statistics
         """
         with self._lock:
             metrics = self._latency_metrics
-            
+
             if operation:
                 metrics = [m for m in metrics if m.operation == operation]
-            
+
             if not metrics:
                 return {
                     "count": 0,
                     "operation": operation,
                 }
-            
+
             durations = [m.duration_ms for m in metrics]
             success_count = sum(1 for m in metrics if m.success)
-            
+
             durations_sorted = sorted(durations)
             count = len(durations_sorted)
-            
+
             return {
                 "count": count,
                 "operation": operation,
@@ -281,10 +280,10 @@ class MetricsCollector:
                 "p99_ms": round(durations_sorted[int(count * 0.99)], 2),
                 "success_rate": round(success_count / count, 4),
             }
-    
+
     def get_token_usage_stats(self) -> Dict[str, Any]:
         """Get token usage and cost statistics.
-        
+
         Returns:
             Dictionary with token usage statistics
         """
@@ -295,10 +294,10 @@ class MetricsCollector:
                     "total_tokens": 0,
                     "total_cost_usd": 0.0,
                 }
-            
+
             total_tokens = sum(m.total_tokens for m in self._token_metrics)
             total_cost = sum(m.estimated_cost_usd for m in self._token_metrics)
-            
+
             # Group by model
             by_model: Dict[str, Dict[str, Any]] = defaultdict(
                 lambda: {
@@ -307,12 +306,12 @@ class MetricsCollector:
                     "cost_usd": 0.0,
                 }
             )
-            
+
             for metric in self._token_metrics:
                 by_model[metric.model]["requests"] += 1
                 by_model[metric.model]["total_tokens"] += metric.total_tokens
                 by_model[metric.model]["cost_usd"] += metric.estimated_cost_usd
-            
+
             return {
                 "total_requests": len(self._token_metrics),
                 "total_tokens": total_tokens,
@@ -326,32 +325,32 @@ class MetricsCollector:
                     for model, stats in by_model.items()
                 },
             }
-    
+
     def get_api_success_rates(self) -> Dict[str, Any]:
         """Get API call success rates.
-        
+
         Returns:
             Dictionary with success rates by service
         """
         with self._lock:
             result = {}
-            
+
             for service, counts in self._api_calls.items():
                 total = counts["success"] + counts["failure"]
                 success_rate = counts["success"] / total if total > 0 else 0.0
-                
+
                 result[service] = {
                     "total_calls": total,
                     "successful": counts["success"],
                     "failed": counts["failure"],
                     "success_rate": round(success_rate, 4),
                 }
-            
+
             return result
-    
+
     def get_user_satisfaction_stats(self) -> Dict[str, Any]:
         """Get user satisfaction statistics.
-        
+
         Returns:
             Dictionary with satisfaction statistics
         """
@@ -361,20 +360,20 @@ class MetricsCollector:
                     "total_feedback": 0,
                     "satisfaction_rate": 0.0,
                 }
-            
+
             positive = sum(1 for m in self._feedback_metrics if m.rating == 5)
             total = len(self._feedback_metrics)
-            
+
             return {
                 "total_feedback": total,
                 "positive": positive,
                 "negative": total - positive,
                 "satisfaction_rate": round(positive / total, 4),
             }
-    
+
     def get_all_metrics(self) -> Dict[str, Any]:
         """Get all metrics in a single dictionary.
-        
+
         Returns:
             Dictionary with all metrics
         """
@@ -391,7 +390,7 @@ class MetricsCollector:
             "user_satisfaction": self.get_user_satisfaction_stats(),
             "operation_counts": dict(self._operation_counts),
         }
-    
+
     def reset_metrics(self) -> None:
         """Reset all metrics. Use with caution."""
         with self._lock:
@@ -400,16 +399,16 @@ class MetricsCollector:
             self._feedback_metrics.clear()
             self._api_calls.clear()
             self._operation_counts.clear()
-        
+
         logger.warning("metrics_reset", message="All metrics have been reset")
-    
+
     @staticmethod
     def _get_prompt_cost(model: str) -> float:
         """Get prompt token cost per 1K tokens in USD.
-        
+
         Args:
             model: Model name
-            
+
         Returns:
             Cost per 1K prompt tokens
         """
@@ -420,17 +419,17 @@ class MetricsCollector:
             "gpt-3.5-turbo": 0.0005,
             "gpt-3.5-turbo-16k": 0.003,
         }
-        
+
         # Default to gpt-4-turbo pricing
         return pricing.get(model, 0.01)
-    
+
     @staticmethod
     def _get_completion_cost(model: str) -> float:
         """Get completion token cost per 1K tokens in USD.
-        
+
         Args:
             model: Model name
-            
+
         Returns:
             Cost per 1K completion tokens
         """
@@ -441,7 +440,7 @@ class MetricsCollector:
             "gpt-3.5-turbo": 0.0015,
             "gpt-3.5-turbo-16k": 0.004,
         }
-        
+
         # Default to gpt-4-turbo pricing
         return pricing.get(model, 0.03)
 
@@ -452,13 +451,13 @@ _metrics_collector: Optional[MetricsCollector] = None
 
 def get_metrics_collector() -> MetricsCollector:
     """Get the global metrics collector instance.
-    
+
     Returns:
         MetricsCollector instance
     """
     global _metrics_collector
-    
+
     if _metrics_collector is None:
         _metrics_collector = MetricsCollector()
-    
+
     return _metrics_collector

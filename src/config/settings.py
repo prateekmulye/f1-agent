@@ -110,7 +110,7 @@ class Settings(BaseSettings):
     )
 
     # Application Configuration
-    app_name: str = Field(default="F1-Slipstream", description="Application name")
+    app_name: str = Field(default="ChatFormula1", description="Application name")
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = Field(
         default="INFO",
         description="Logging level",
@@ -235,12 +235,12 @@ class Settings(BaseSettings):
         "cors_allow_origins",
         "tavily_include_domains",
         "tavily_exclude_domains",
-        mode="before"
+        mode="before",
     )
     @classmethod
     def parse_string_lists(cls, v):
         """Parse list fields from environment variables.
-        
+
         Supports:
         - List objects (from code): ["item1", "item2"]
         - JSON strings: '["item1","item2"]'
@@ -285,10 +285,10 @@ class Settings(BaseSettings):
 @lru_cache()
 def get_settings() -> Settings:
     """Get cached settings instance.
-    
+
     Returns:
         Settings: Application settings instance
-        
+
     Raises:
         ValidationError: If configuration is invalid
     """

@@ -19,7 +19,7 @@ router = APIRouter()
 
 class HealthResponse(BaseModel):
     """Health check response model."""
-    
+
     status: str
     version: str
     environment: str
@@ -35,18 +35,18 @@ class HealthResponse(BaseModel):
 )
 async def health_check() -> HealthResponse:
     """Check health status of API and dependencies.
-    
+
     Returns:
         HealthResponse with status and dependency information
     """
     config = get_settings()
-    
+
     # Import here to avoid circular dependencies
     from src.api.main import app_state
-    
+
     # Check dependencies
     dependencies = {}
-    
+
     # Check vector store
     if app_state.get("vector_store"):
         try:
@@ -59,32 +59,29 @@ async def health_check() -> HealthResponse:
             dependencies["vector_store"] = f"unhealthy: {str(e)}"
     else:
         dependencies["vector_store"] = "not_initialized"
-    
+
     # Check Tavily client
     if app_state.get("tavily_client"):
         dependencies["tavily_client"] = "healthy"
     else:
         dependencies["tavily_client"] = "not_initialized"
-    
+
     # Check agent graph
     if app_state.get("agent_graph"):
         dependencies["agent_graph"] = "healthy"
     else:
         dependencies["agent_graph"] = "not_initialized"
-    
+
     # Determine overall status
-    all_healthy = all(
-        dep_status == "healthy" 
-        for dep_status in dependencies.values()
-    )
+    all_healthy = all(dep_status == "healthy" for dep_status in dependencies.values())
     overall_status = "healthy" if all_healthy else "degraded"
-    
+
     logger.info(
         "health_check_completed",
         status=overall_status,
         dependencies=dependencies,
     )
-    
+
     return HealthResponse(
         status=overall_status,
         version="0.1.0",
@@ -101,12 +98,12 @@ async def health_check() -> HealthResponse:
 )
 async def root() -> dict[str, Any]:
     """Root endpoint with API information.
-    
+
     Returns:
         Dictionary with API information
     """
     config = get_settings()
-    
+
     return {
         "name": config.app_name,
         "version": "0.1.0",

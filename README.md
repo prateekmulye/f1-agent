@@ -1,10 +1,10 @@
-# 🏎️ F1-Slipstream Agent
+# 🏎️ ChatFormula1
 
 An AI-powered Formula 1 chatbot that provides real-time race information, predictions, and insights using advanced RAG (Retrieval-Augmented Generation) architecture.
 
 ## 🚀 Live Demo
 
-**Try it now**: [https://f1-slipstream-ui.onrender.com](https://f1-slipstream-ui.onrender.com)
+**Try it now**: [https://chatformula1-ui.onrender.com](https://chatformula1-ui.onrender.com)
 
 *Note: First load may take 30 seconds as the free tier wakes up.*
 
@@ -22,7 +22,7 @@ An AI-powered Formula 1 chatbot that provides real-time race information, predic
 
 ## 📖 What It Does
 
-F1-Slipstream is an intelligent chatbot that can:
+ChatFormula1 is an intelligent chatbot that can:
 
 - Answer questions about current F1 standings and race results
 - Provide historical F1 statistics and records
@@ -110,8 +110,8 @@ Response with Citations
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/YOUR_USERNAME/f1-slipstream.git
-   cd f1-slipstream
+   git clone https://github.com/YOUR_USERNAME/chatformula1.git
+   cd chatformula1
    ```
 
 2. **Install dependencies**
@@ -229,7 +229,7 @@ poetry run pytest -m integration # Integration tests only
 ## 📁 Project Structure
 
 ```
-f1-slipstream/
+chatformula1/
 ├── src/                      # Source code
 │   ├── agent/               # LangGraph agent implementation
 │   ├── api/                 # FastAPI endpoints

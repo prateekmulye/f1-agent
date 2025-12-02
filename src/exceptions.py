@@ -3,9 +3,9 @@
 from typing import Any, Optional
 
 
-class F1SlipstreamError(Exception):
-    """Base exception for all F1-Slipstream application errors.
-    
+class ChatFormula1Error(Exception):
+    """Base exception for all ChatFormula1 application errors.
+
     Attributes:
         message: Human-readable error message
         details: Additional error details
@@ -19,7 +19,7 @@ class F1SlipstreamError(Exception):
         original_error: Optional[Exception] = None,
     ) -> None:
         """Initialize the exception.
-        
+
         Args:
             message: Human-readable error message
             details: Additional error details
@@ -46,9 +46,9 @@ class F1SlipstreamError(Exception):
         )
 
 
-class ConfigurationError(F1SlipstreamError):
+class ConfigurationError(ChatFormula1Error):
     """Raised when there are configuration-related errors.
-    
+
     Examples:
         - Missing required environment variables
         - Invalid configuration values
@@ -58,9 +58,9 @@ class ConfigurationError(F1SlipstreamError):
     pass
 
 
-class VectorStoreError(F1SlipstreamError):
+class VectorStoreError(ChatFormula1Error):
     """Raised when there are errors related to Pinecone vector store operations.
-    
+
     Examples:
         - Connection failures
         - Index not found
@@ -71,9 +71,9 @@ class VectorStoreError(F1SlipstreamError):
     pass
 
 
-class SearchAPIError(F1SlipstreamError):
+class SearchAPIError(ChatFormula1Error):
     """Raised when there are errors related to Tavily Search API.
-    
+
     Examples:
         - API connection failures
         - Rate limit exceeded
@@ -84,9 +84,9 @@ class SearchAPIError(F1SlipstreamError):
     pass
 
 
-class LLMError(F1SlipstreamError):
+class LLMError(ChatFormula1Error):
     """Raised when there are errors related to OpenAI LLM operations.
-    
+
     Examples:
         - API connection failures
         - Rate limit exceeded
@@ -98,9 +98,9 @@ class LLMError(F1SlipstreamError):
     pass
 
 
-class AgentError(F1SlipstreamError):
+class AgentError(ChatFormula1Error):
     """Raised when there are errors in LangGraph agent execution.
-    
+
     Examples:
         - State machine errors
         - Tool execution failures
@@ -111,9 +111,9 @@ class AgentError(F1SlipstreamError):
     pass
 
 
-class DataIngestionError(F1SlipstreamError):
+class DataIngestionError(ChatFormula1Error):
     """Raised when there are errors during data ingestion pipeline.
-    
+
     Examples:
         - Data loading failures
         - Document processing errors
@@ -124,9 +124,9 @@ class DataIngestionError(F1SlipstreamError):
     pass
 
 
-class ValidationError(F1SlipstreamError):
+class ValidationError(ChatFormula1Error):
     """Raised when data validation fails.
-    
+
     Examples:
         - Invalid input format
         - Schema validation failures
@@ -137,9 +137,9 @@ class ValidationError(F1SlipstreamError):
     pass
 
 
-class RateLimitError(F1SlipstreamError):
+class RateLimitError(ChatFormula1Error):
     """Raised when API rate limits are exceeded.
-    
+
     Attributes:
         retry_after: Seconds to wait before retrying
     """
@@ -152,7 +152,7 @@ class RateLimitError(F1SlipstreamError):
         original_error: Optional[Exception] = None,
     ) -> None:
         """Initialize the rate limit error.
-        
+
         Args:
             message: Human-readable error message
             retry_after: Seconds to wait before retrying
@@ -163,9 +163,9 @@ class RateLimitError(F1SlipstreamError):
         self.retry_after = retry_after
 
 
-class TimeoutError(F1SlipstreamError):
+class TimeoutError(ChatFormula1Error):
     """Raised when operations exceed timeout limits.
-    
+
     Examples:
         - API request timeouts
         - Database query timeouts
@@ -175,9 +175,9 @@ class TimeoutError(F1SlipstreamError):
     pass
 
 
-class AuthenticationError(F1SlipstreamError):
+class AuthenticationError(ChatFormula1Error):
     """Raised when authentication fails.
-    
+
     Examples:
         - Invalid API keys
         - Expired credentials

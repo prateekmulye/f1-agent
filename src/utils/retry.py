@@ -28,6 +28,7 @@ T = TypeVar("T")
 
 class CircuitState(Enum):
     """Circuit breaker states."""
+
     CLOSED = "closed"  # Normal operation
     OPEN = "open"  # Failing, reject requests
     HALF_OPEN = "half_open"  # Testing if service recovered
@@ -35,7 +36,7 @@ class CircuitState(Enum):
 
 class CircuitBreaker:
     """Circuit breaker pattern implementation for preventing cascading failures.
-    
+
     The circuit breaker monitors failures and opens the circuit after a threshold
     is reached, preventing further calls to the failing service. After a timeout,
     it enters half-open state to test if the service has recovered.
@@ -48,7 +49,7 @@ class CircuitBreaker:
         expected_exception: Type[Exception] = Exception,
     ) -> None:
         """Initialize circuit breaker.
-        
+
         Args:
             failure_threshold: Number of failures before opening circuit
             recovery_timeout: Seconds to wait before attempting recovery
@@ -57,7 +58,7 @@ class CircuitBreaker:
         self.failure_threshold = failure_threshold
         self.recovery_timeout = recovery_timeout
         self.expected_exception = expected_exception
-        
+
         self._failure_count = 0
         self._last_failure_time: float | None = None
         self._state = CircuitState.CLOSED
@@ -76,15 +77,15 @@ class CircuitBreaker:
 
     def call(self, func: Callable[..., T], *args: Any, **kwargs: Any) -> T:
         """Execute function with circuit breaker protection.
-        
+
         Args:
             func: Function to execute
             *args: Positional arguments
             **kwargs: Keyword arguments
-            
+
         Returns:
             Function result
-            
+
         Raises:
             Exception: If circuit is open or function fails
         """
@@ -115,19 +116,17 @@ class CircuitBreaker:
             self._on_failure(func.__name__, e)
             raise
 
-    async def call_async(
-        self, func: Callable[..., T], *args: Any, **kwargs: Any
-    ) -> T:
+    async def call_async(self, func: Callable[..., T], *args: Any, **kwargs: Any) -> T:
         """Execute async function with circuit breaker protection.
-        
+
         Args:
             func: Async function to execute
             *args: Positional arguments
             **kwargs: Keyword arguments
-            
+
         Returns:
             Function result
-            
+
         Raises:
             Exception: If circuit is open or function fails
         """
@@ -176,7 +175,7 @@ class CircuitBreaker:
         """Handle failed call."""
         self._failure_count += 1
         self._last_failure_time = time.time()
-        
+
         logger.warning(
             "circuit_breaker_failure",
             function=func_name,
@@ -203,10 +202,10 @@ _circuit_breakers: dict[str, CircuitBreaker] = defaultdict(
 
 def get_circuit_breaker(service_name: str) -> CircuitBreaker:
     """Get or create circuit breaker for a service.
-    
+
     Args:
         service_name: Name of the service
-        
+
     Returns:
         CircuitBreaker instance
     """
@@ -223,7 +222,7 @@ def retry_with_backoff(
     use_circuit_breaker: bool = False,
 ) -> Callable[[Callable[..., T]], Callable[..., T]]:
     """Decorator to retry functions with exponential backoff.
-    
+
     Args:
         max_attempts: Maximum number of retry attempts
         initial_delay: Initial delay in seconds
@@ -232,10 +231,10 @@ def retry_with_backoff(
         exceptions: Tuple of exception types to retry on
         service_name: Name of service for circuit breaker (if enabled)
         use_circuit_breaker: Whether to use circuit breaker pattern
-        
+
     Returns:
         Decorated function with retry logic
-        
+
     Example:
         @retry_with_backoff(
             max_attempts=3,
@@ -269,7 +268,7 @@ def retry_with_backoff(
         async def async_wrapper(*args: Any, **kwargs: Any) -> T:
             attempt = 0
             last_error = None
-            
+
             while attempt < max_attempts:
                 attempt += 1
                 try:
@@ -279,12 +278,12 @@ def retry_with_backoff(
                         attempt=attempt,
                         max_attempts=max_attempts,
                     )
-                    
+
                     if circuit_breaker:
                         result = await circuit_breaker.call_async(func, *args, **kwargs)
                     else:
                         result = await func(*args, **kwargs)
-                    
+
                     if attempt > 1:
                         logger.info(
                             "retry_success",
@@ -292,9 +291,9 @@ def retry_with_backoff(
                             attempt=attempt,
                             max_attempts=max_attempts,
                         )
-                    
+
                     return result
-                    
+
                 except exceptions as e:
                     last_error = e
                     logger.warning(
@@ -306,7 +305,7 @@ def retry_with_backoff(
                         error_type=type(e).__name__,
                         will_retry=attempt < max_attempts,
                     )
-                    
+
                     if attempt >= max_attempts:
                         logger.error(
                             "retry_exhausted",
@@ -316,22 +315,21 @@ def retry_with_backoff(
                             error_type=type(e).__name__,
                         )
                         raise
-                    
+
                     # Calculate backoff delay
                     delay = min(
-                        initial_delay * (exponential_base ** (attempt - 1)),
-                        max_delay
+                        initial_delay * (exponential_base ** (attempt - 1)), max_delay
                     )
-                    
+
                     logger.debug(
                         "retry_backoff",
                         function=func.__name__,
                         delay_seconds=delay,
                         next_attempt=attempt + 1,
                     )
-                    
+
                     await asyncio.sleep(delay)
-            
+
             # Should not reach here, but just in case
             if last_error:
                 raise last_error
@@ -353,7 +351,7 @@ def retry_with_backoff(
         def sync_wrapper(*args: Any, **kwargs: Any) -> T:
             attempt = 0
             last_error = None
-            
+
             while attempt < max_attempts:
                 attempt += 1
                 try:
@@ -363,12 +361,12 @@ def retry_with_backoff(
                         attempt=attempt,
                         max_attempts=max_attempts,
                     )
-                    
+
                     if circuit_breaker:
                         result = circuit_breaker.call(func, *args, **kwargs)
                     else:
                         result = func(*args, **kwargs)
-                    
+
                     if attempt > 1:
                         logger.info(
                             "retry_success",
@@ -376,9 +374,9 @@ def retry_with_backoff(
                             attempt=attempt,
                             max_attempts=max_attempts,
                         )
-                    
+
                     return result
-                    
+
                 except exceptions as e:
                     last_error = e
                     logger.warning(
@@ -390,7 +388,7 @@ def retry_with_backoff(
                         error_type=type(e).__name__,
                         will_retry=attempt < max_attempts,
                     )
-                    
+
                     if attempt >= max_attempts:
                         logger.error(
                             "retry_exhausted",
@@ -400,22 +398,21 @@ def retry_with_backoff(
                             error_type=type(e).__name__,
                         )
                         raise
-                    
+
                     # Calculate backoff delay
                     delay = min(
-                        initial_delay * (exponential_base ** (attempt - 1)),
-                        max_delay
+                        initial_delay * (exponential_base ** (attempt - 1)), max_delay
                     )
-                    
+
                     logger.debug(
                         "retry_backoff",
                         function=func.__name__,
                         delay_seconds=delay,
                         next_attempt=attempt + 1,
                     )
-                    
+
                     time.sleep(delay)
-            
+
             # Should not reach here, but just in case
             if last_error:
                 raise last_error

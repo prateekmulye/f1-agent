@@ -1,10 +1,10 @@
-# Render Blueprint for F1-Slipstream Agent
+# Render Blueprint for ChatFormula1
 # Deploy with: render.yaml in repository root
 
 services:
   # Streamlit UI Service
   - type: web
-    name: f1-slipstream-ui
+    name: chatformula1-ui
     runtime: python
     region: oregon
     plan: free

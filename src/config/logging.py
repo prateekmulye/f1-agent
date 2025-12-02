@@ -17,44 +17,45 @@ session_id_var: ContextVar[Optional[str]] = ContextVar("session_id", default=Non
 
 def add_app_context(logger: Any, method_name: str, event_dict: EventDict) -> EventDict:
     """Add application context to log entries.
-    
+
     Args:
         logger: Logger instance
         method_name: Method name being called
         event_dict: Event dictionary
-        
+
     Returns:
         EventDict: Updated event dictionary with app context
     """
-    event_dict["app"] = "f1-slipstream"
+    event_dict["app"] = "chatformula1"
     return event_dict
 
 
-def add_correlation_ids(logger: Any, method_name: str, event_dict: EventDict) -> EventDict:
+def add_correlation_ids(
+    logger: Any, method_name: str, event_dict: EventDict
+) -> EventDict:
     """Add correlation IDs (request_id, session_id) to log entries.
-    
+
     Args:
         logger: Logger instance
         method_name: Method name being called
         event_dict: Event dictionary
-        
+
     Returns:
         EventDict: Updated event dictionary with correlation IDs
     """
     request_id = request_id_var.get()
     if request_id:
         event_dict["request_id"] = request_id
-    
+
     session_id = session_id_var.get()
     if session_id:
         event_dict["session_id"] = session_id
-    
+
     return event_dict
 
 
 def setup_logging(log_level: str) -> None:
-    """Configure structured logging with JSON formatting.
-    """
+    """Configure structured logging with JSON formatting."""
     settings = Settings()
     # Configure standard library logging
     logging.basicConfig(
@@ -77,15 +78,12 @@ def setup_logging(log_level: str) -> None:
     # Add exception formatting
     if settings.is_development:
         # Pretty console output for development
-        processors.extend([
-            structlog.dev.ConsoleRenderer(colors=True)
-        ])
+        processors.extend([structlog.dev.ConsoleRenderer(colors=True)])
     else:
         # JSON output for production
-        processors.extend([
-            structlog.processors.format_exc_info,
-            structlog.processors.JSONRenderer()
-        ])
+        processors.extend(
+            [structlog.processors.format_exc_info, structlog.processors.JSONRenderer()]
+        )
 
     # Configure structlog
     structlog.configure(
@@ -99,10 +97,10 @@ def setup_logging(log_level: str) -> None:
 
 def get_logger(name: str) -> structlog.stdlib.BoundLogger:
     """Get a configured logger instance.
-    
+
     Args:
         name: Logger name (typically __name__)
-        
+
     Returns:
         BoundLogger: Configured logger instance
     """
@@ -111,7 +109,7 @@ def get_logger(name: str) -> structlog.stdlib.BoundLogger:
 
 def set_request_id(request_id: str) -> None:
     """Set the request ID for the current context.
-    
+
     Args:
         request_id: Unique request identifier
     """
@@ -120,7 +118,7 @@ def set_request_id(request_id: str) -> None:
 
 def set_session_id(session_id: str) -> None:
     """Set the session ID for the current context.
-    
+
     Args:
         session_id: Unique session identifier
     """

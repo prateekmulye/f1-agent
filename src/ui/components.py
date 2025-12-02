@@ -23,7 +23,7 @@ def render_message(
     message_id: Optional[str] = None,
 ) -> None:
     """Render a chat message with role-based styling.
-    
+
     Args:
         role: Message role ("user" or "assistant")
         content: Message content (supports markdown)
@@ -33,7 +33,7 @@ def render_message(
     with st.chat_message(role):
         # Render main content with markdown support
         st.markdown(content)
-        
+
         # Render metadata if present
         if metadata and role == "assistant":
             render_message_metadata(metadata, message_id)
@@ -44,28 +44,28 @@ def render_message_metadata(
     message_id: Optional[str] = None,
 ) -> None:
     """Render metadata section for assistant messages.
-    
+
     Args:
         metadata: Message metadata dictionary
         message_id: Optional message ID for feedback
     """
     # Create columns for metadata and feedback
     col1, col2 = st.columns([4, 1])
-    
+
     with col1:
         # Show sources if available
         if "sources" in metadata and metadata["sources"]:
             render_sources(metadata["sources"])
-        
+
         # Show confidence if available
         if "confidence" in metadata:
             render_confidence(metadata["confidence"])
-        
+
         # Show warnings if present
         if "warnings" in metadata and metadata["warnings"]:
             for warning in metadata["warnings"]:
                 st.warning(warning, icon="⚠️")
-    
+
     with col2:
         # Render feedback buttons
         if message_id:
@@ -74,14 +74,14 @@ def render_message_metadata(
 
 def render_sources(sources: list[dict[str, Any]]) -> None:
     """Render expandable source citations.
-    
+
     Args:
         sources: List of source dictionaries with content, url, title, etc.
     """
     with st.expander(f"📚 Sources ({len(sources)})", expanded=False):
         for i, source in enumerate(sources, 1):
             source_type = source.get("type", "unknown")
-            
+
             # Different styling for different source types
             if source_type == "historical":
                 icon = "📖"
@@ -92,35 +92,35 @@ def render_sources(sources: list[dict[str, Any]]) -> None:
             else:
                 icon = "📄"
                 label = "Source"
-            
+
             st.markdown(f"**{icon} {label} {i}**")
-            
+
             # Show title if available
             if "title" in source and source["title"]:
                 st.markdown(f"*{source['title']}*")
-            
+
             # Show URL if available
             if "url" in source and source["url"]:
                 st.markdown(f"🔗 [{source['url']}]({source['url']})")
-            
+
             # Show content preview
             content = source.get("content", "")
             if content:
                 preview = content[:200] + "..." if len(content) > 200 else content
                 st.text(preview)
-            
+
             # Show score if available
             if "score" in source:
                 score = source["score"]
                 st.progress(score, text=f"Relevance: {score:.2%}")
-            
+
             if i < len(sources):
                 st.divider()
 
 
 def render_confidence(confidence: float) -> None:
     """Render confidence score indicator.
-    
+
     Args:
         confidence: Confidence score (0.0 to 1.0)
     """
@@ -134,7 +134,7 @@ def render_confidence(confidence: float) -> None:
     else:
         color = "red"
         label = "Low Confidence"
-    
+
     st.markdown(
         f"**Confidence:** :{color}[{label}] ({confidence:.0%})",
         help="Confidence level in the prediction or analysis",
@@ -143,16 +143,16 @@ def render_confidence(confidence: float) -> None:
 
 def render_feedback_buttons(message_id: str) -> None:
     """Render thumbs up/down feedback buttons.
-    
+
     Args:
         message_id: Unique message identifier
     """
     # Check if feedback already given
     feedback_key = f"feedback_{message_id}"
     current_feedback = st.session_state.feedback.get(message_id)
-    
+
     col1, col2 = st.columns(2)
-    
+
     with col1:
         if st.button(
             "👍",
@@ -167,7 +167,7 @@ def render_feedback_buttons(message_id: str) -> None:
                 feedback="positive",
             )
             st.rerun()
-    
+
     with col2:
         if st.button(
             "👎",
@@ -182,7 +182,7 @@ def render_feedback_buttons(message_id: str) -> None:
                 feedback="negative",
             )
             st.rerun()
-    
+
     # Show feedback confirmation
     if current_feedback:
         emoji = "👍" if current_feedback == "up" else "👎"
@@ -198,7 +198,7 @@ def render_typing_indicator() -> None:
 
 def render_error_message(error: str, show_details: bool = False) -> None:
     """Render user-friendly error message.
-    
+
     Args:
         error: Error message or exception string
         show_details: Whether to show technical details
@@ -212,19 +212,19 @@ def render_error_message(error: str, show_details: bool = False) -> None:
         "vector_store": "📚 Knowledge base temporarily unavailable. Responses may be limited.",
         "search": "🔍 Search service temporarily unavailable. Using cached knowledge only.",
     }
-    
+
     # Try to match error to friendly message
     friendly_msg = None
     for key, msg in user_friendly_errors.items():
         if key in error.lower():
             friendly_msg = msg
             break
-    
+
     if friendly_msg:
         st.error(friendly_msg)
     else:
         st.error("⚠️ Something went wrong. Please try again.")
-    
+
     # Show technical details in expander if requested
     if show_details:
         with st.expander("Technical Details"):
@@ -233,7 +233,7 @@ def render_error_message(error: str, show_details: bool = False) -> None:
 
 def render_loading_state(message: str = "Processing your request...") -> None:
     """Render loading state with progress indicator.
-    
+
     Args:
         message: Loading message to display
     """
@@ -247,8 +247,9 @@ def render_loading_state(message: str = "Processing your request...") -> None:
 
 def render_welcome_message() -> None:
     """Render welcome message for new conversations."""
-    st.markdown("""
-    ### Welcome to F1-Slipstream! 🏎️
+    st.markdown(
+        """
+    ### Welcome to ChatFormula1! 🏎️
     
     I'm your AI-powered Formula 1 expert assistant. I can help you with:
     
@@ -267,12 +268,13 @@ def render_welcome_message() -> None:
     - "What are the current technical regulations?"
     
     Just type your question below to get started! 🚀
-    """)
+    """
+    )
 
 
 def render_input_validation_error(error_type: str) -> None:
     """Render input validation error message.
-    
+
     Args:
         error_type: Type of validation error
     """
@@ -281,23 +283,23 @@ def render_input_validation_error(error_type: str) -> None:
         "too_long": "⚠️ Your question is too long. Please keep it under 500 characters.",
         "invalid": "⚠️ Invalid input. Please try again.",
     }
-    
+
     message = errors.get(error_type, "⚠️ Invalid input.")
     st.warning(message)
 
 
 def format_timestamp(dt: datetime) -> str:
     """Format datetime for display.
-    
+
     Args:
         dt: Datetime object
-        
+
     Returns:
         Formatted timestamp string
     """
     now = datetime.now()
     diff = now - dt
-    
+
     if diff.seconds < 60:
         return "Just now"
     elif diff.seconds < 3600:
@@ -318,20 +320,20 @@ def render_session_info() -> None:
     """Render session information in sidebar."""
     st.sidebar.divider()
     st.sidebar.subheader("📊 Session Stats")
-    
+
     # Message count
     msg_count = len(st.session_state.messages)
     st.sidebar.metric("Messages", msg_count)
-    
+
     # Feedback stats
     feedback = st.session_state.feedback
     positive = sum(1 for f in feedback.values() if f == "up")
     negative = sum(1 for f in feedback.values() if f == "down")
-    
+
     col1, col2 = st.sidebar.columns(2)
     col1.metric("👍", positive)
     col2.metric("👎", negative)
-    
+
     # Session duration
     if "session_start" in st.session_state:
         duration = datetime.now() - st.session_state.session_start

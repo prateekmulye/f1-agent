@@ -43,7 +43,7 @@ def mock_search_results() -> list[dict]:
 def test_tavily_client_initialization(test_settings: Settings):
     """Test TavilyClient initialization."""
     client = TavilyClient(test_settings)
-    
+
     assert client.settings == test_settings
     assert client.is_available is True
     assert client._consecutive_failures == 0
@@ -58,14 +58,16 @@ def test_tavily_client_custom_rate_limits(test_settings: Settings):
         rate_limit_requests=30,
         rate_limit_window=120.0,
     )
-    
+
     assert client._rate_limit_requests == 30
     assert client._rate_limit_window == 120.0
 
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_search_success(tavily_client: TavilyClient, mock_search_results: list[dict]):
+async def test_search_success(
+    tavily_client: TavilyClient, mock_search_results: list[dict]
+):
     """Test successful search operation."""
     with patch.object(
         tavily_client.search_tool,
@@ -74,7 +76,7 @@ async def test_search_success(tavily_client: TavilyClient, mock_search_results: 
         return_value=mock_search_results,
     ):
         results = await tavily_client.search("Max Verstappen championship")
-        
+
         assert len(results) == 2
         assert results[0]["title"] == "Max Verstappen wins 2024 Championship"
         assert tavily_client._consecutive_failures == 0
@@ -82,22 +84,22 @@ async def test_search_success(tavily_client: TavilyClient, mock_search_results: 
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_search_with_overrides(tavily_client: TavilyClient, mock_search_results: list[dict]):
+async def test_search_with_overrides(
+    tavily_client: TavilyClient, mock_search_results: list[dict]
+):
     """Test search with parameter overrides."""
-    with patch(
-        "src.search.tavily_client.TavilySearchResults"
-    ) as mock_tool_class:
+    with patch("src.search.tavily_client.TavilySearchResults") as mock_tool_class:
         mock_tool = MagicMock()
         mock_tool.ainvoke = AsyncMock(return_value=mock_search_results)
         mock_tool_class.return_value = mock_tool
-        
+
         results = await tavily_client.search(
             "F1 news",
             max_results=10,
             include_answer=False,
             search_depth="basic",
         )
-        
+
         assert len(results) == 2
         mock_tool_class.assert_called_once()
 
@@ -114,7 +116,7 @@ async def test_search_failure_records_failure(tavily_client: TavilyClient):
     ):
         with pytest.raises(SearchAPIError):
             await tavily_client.search("test query")
-        
+
         assert tavily_client._consecutive_failures == 1
 
 
@@ -132,7 +134,7 @@ async def test_fallback_mode_after_consecutive_failures(tavily_client: TavilyCli
         for _ in range(3):
             with pytest.raises(SearchAPIError):
                 await tavily_client.search("test query")
-        
+
         assert tavily_client._fallback_mode is True
         assert tavily_client.is_available is False
 
@@ -148,7 +150,7 @@ async def test_safe_search_returns_empty_on_failure(tavily_client: TavilyClient)
         side_effect=Exception("API Error"),
     ):
         results, error = await tavily_client.safe_search("test query")
-        
+
         assert results == []
         assert error is not None
         assert "unavailable" in error.lower()
@@ -159,9 +161,9 @@ async def test_safe_search_returns_empty_on_failure(tavily_client: TavilyClient)
 async def test_safe_search_in_fallback_mode(tavily_client: TavilyClient):
     """Test safe_search behavior when in fallback mode."""
     tavily_client._fallback_mode = True
-    
+
     results, error = await tavily_client.safe_search("test query")
-    
+
     assert results == []
     assert error is not None
     assert "temporarily unavailable" in error.lower()
@@ -169,7 +171,9 @@ async def test_safe_search_in_fallback_mode(tavily_client: TavilyClient):
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_search_with_context(tavily_client: TavilyClient, mock_search_results: list[dict]):
+async def test_search_with_context(
+    tavily_client: TavilyClient, mock_search_results: list[dict]
+):
     """Test contextual search."""
     with patch.object(
         tavily_client.search_tool,
@@ -181,17 +185,19 @@ async def test_search_with_context(tavily_client: TavilyClient, mock_search_resu
             "championship",
             context="2024 season",
         )
-        
+
         assert result["query"] == "championship"
         assert result["context"] == "2024 season"
         assert len(result["results"]) == 2
 
 
 @pytest.mark.unit
-def test_convert_to_documents(tavily_client: TavilyClient, mock_search_results: list[dict]):
+def test_convert_to_documents(
+    tavily_client: TavilyClient, mock_search_results: list[dict]
+):
     """Test conversion of search results to documents."""
     documents = tavily_client.convert_to_documents(mock_search_results)
-    
+
     assert len(documents) == 2
     assert documents[0].page_content == mock_search_results[0]["raw_content"]
     assert documents[0].metadata["source"] == mock_search_results[0]["url"]
@@ -218,9 +224,9 @@ def test_convert_to_documents_with_deduplication(tavily_client: TavilyClient):
             "score": 0.85,
         },
     ]
-    
+
     documents = tavily_client.convert_to_documents(duplicate_results, deduplicate=True)
-    
+
     assert len(documents) == 1  # Duplicate removed
 
 
@@ -234,9 +240,9 @@ def test_parse_and_normalize_result(tavily_client: TavilyClient):
         "score": 0.95,
         "published_date": "2024-11-24",
     }
-    
+
     normalized = tavily_client._parse_and_normalize_result(result)
-    
+
     assert normalized is not None
     assert normalized["title"] == "Test Title"
     assert normalized["content"] == "Test content"
@@ -252,9 +258,9 @@ def test_parse_result_with_invalid_score(tavily_client: TavilyClient):
         "content": "Test content",
         "score": 1.5,  # Invalid score > 1.0
     }
-    
+
     normalized = tavily_client._parse_and_normalize_result(result)
-    
+
     assert normalized is not None
     assert 0.0 <= normalized["score"] <= 1.0
 
@@ -267,9 +273,9 @@ def test_parse_result_missing_url(tavily_client: TavilyClient):
         "content": "Test content",
         # Missing URL
     }
-    
+
     normalized = tavily_client._parse_and_normalize_result(result)
-    
+
     assert normalized is None
 
 
@@ -281,9 +287,9 @@ def test_parse_result_empty_content(tavily_client: TavilyClient):
         "url": "https://example.com",
         "content": "   ",  # Empty after strip
     }
-    
+
     normalized = tavily_client._parse_and_normalize_result(result)
-    
+
     assert normalized is None
 
 
@@ -292,11 +298,11 @@ def test_get_fallback_message(tavily_client: TavilyClient):
     """Test fallback message generation."""
     # Not in fallback mode
     assert tavily_client.get_fallback_message() == ""
-    
+
     # Enter fallback mode
     tavily_client._fallback_mode = True
     tavily_client._last_failure_time = asyncio.get_event_loop().time()
-    
+
     message = tavily_client.get_fallback_message()
     assert "temporarily unavailable" in message.lower()
     assert "historical knowledge" in message.lower()
@@ -309,7 +315,7 @@ async def test_rate_limiting(tavily_client: TavilyClient):
     # Set very low rate limit for testing
     tavily_client._rate_limit_requests = 2
     tavily_client._rate_limit_window = 1.0
-    
+
     with patch.object(
         tavily_client.search_tool,
         "ainvoke",
@@ -319,17 +325,19 @@ async def test_rate_limiting(tavily_client: TavilyClient):
         # First two requests should succeed
         await tavily_client.search("query 1")
         await tavily_client.search("query 2")
-        
+
         # Third request should hit rate limit
         with pytest.raises(RateLimitError) as exc_info:
             await tavily_client.search("query 3")
-        
+
         assert exc_info.value.retry_after is not None
 
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_get_latest_f1_news(tavily_client: TavilyClient, mock_search_results: list[dict]):
+async def test_get_latest_f1_news(
+    tavily_client: TavilyClient, mock_search_results: list[dict]
+):
     """Test getting latest F1 news."""
     with patch.object(
         tavily_client.search_tool,
@@ -337,8 +345,10 @@ async def test_get_latest_f1_news(tavily_client: TavilyClient, mock_search_resul
         new_callable=AsyncMock,
         return_value=mock_search_results,
     ):
-        news = await tavily_client.get_latest_f1_news("Monaco Grand Prix", max_results=3)
-        
+        news = await tavily_client.get_latest_f1_news(
+            "Monaco Grand Prix", max_results=3
+        )
+
         assert len(news) == 2
         assert news[0]["title"] == "Max Verstappen wins 2024 Championship"
 
@@ -356,7 +366,7 @@ async def test_crawl_f1_source(tavily_client: TavilyClient):
             "score": 0.9,
         }
     ]
-    
+
     with patch.object(
         tavily_client.search_tool,
         "ainvoke",
@@ -364,7 +374,7 @@ async def test_crawl_f1_source(tavily_client: TavilyClient):
         return_value=mock_result,
     ):
         documents = await tavily_client.crawl_f1_source("https://formula1.com/article")
-        
+
         assert len(documents) == 1
         assert documents[0].page_content == "Full article content with more details..."
         assert documents[0].metadata["source"] == "https://formula1.com/article"
@@ -372,7 +382,9 @@ async def test_crawl_f1_source(tavily_client: TavilyClient):
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_map_f1_domain(tavily_client: TavilyClient, mock_search_results: list[dict]):
+async def test_map_f1_domain(
+    tavily_client: TavilyClient, mock_search_results: list[dict]
+):
     """Test mapping an F1 domain."""
     with patch.object(
         tavily_client.search_tool,
@@ -381,6 +393,6 @@ async def test_map_f1_domain(tavily_client: TavilyClient, mock_search_results: l
         return_value=mock_search_results,
     ):
         pages = await tavily_client.map_f1_domain("autosport.com", "2024 season")
-        
+
         assert len(pages) == 2
         assert pages[0]["title"] == "Max Verstappen wins 2024 Championship"

@@ -16,7 +16,7 @@ from langchain_core.messages import SystemMessage
 
 
 # RAG prompt for combining vector context with queries
-RAG_CONTEXT_TEMPLATE = """You are F1-Slipstream, an expert Formula 1 analyst. Use the provided context to answer the user's question accurately.
+RAG_CONTEXT_TEMPLATE = """You are ChatFormula1, an expert Formula 1 analyst. Use the provided context to answer the user's question accurately.
 
 **Context from Knowledge Base:**
 {vector_context}
@@ -44,30 +44,34 @@ def create_rag_prompt_template(
     include_conversation_history: bool = True,
 ) -> ChatPromptTemplate:
     """Create a RAG prompt template for context-aware responses.
-    
+
     Args:
         include_conversation_history: Whether to include conversation history
-        
+
     Returns:
         ChatPromptTemplate configured for RAG
     """
     messages = [
-        SystemMessage(content="You are F1-Slipstream, an expert Formula 1 analyst."),
+        SystemMessage(content="You are ChatFormula1, an expert Formula 1 analyst."),
     ]
-    
+
     if include_conversation_history:
-        messages.append(MessagesPlaceholder(variable_name="chat_history", optional=True))
-    
-    messages.extend([
-        HumanMessagePromptTemplate.from_template(RAG_CONTEXT_TEMPLATE),
-        HumanMessagePromptTemplate.from_template("User question: {query}"),
-    ])
-    
+        messages.append(
+            MessagesPlaceholder(variable_name="chat_history", optional=True)
+        )
+
+    messages.extend(
+        [
+            HumanMessagePromptTemplate.from_template(RAG_CONTEXT_TEMPLATE),
+            HumanMessagePromptTemplate.from_template("User question: {query}"),
+        ]
+    )
+
     return ChatPromptTemplate.from_messages(messages)
 
 
 # Prompt template for vector-only retrieval (when search is unavailable)
-VECTOR_ONLY_TEMPLATE = """You are F1-Slipstream, an expert Formula 1 analyst.
+VECTOR_ONLY_TEMPLATE = """You are ChatFormula1, an expert Formula 1 analyst.
 
 **Context from Knowledge Base:**
 {vector_context}
@@ -92,7 +96,7 @@ VECTOR_ONLY_PROMPT = PromptTemplate(
 
 
 # Prompt template for search-only mode (when vector store is unavailable)
-SEARCH_ONLY_TEMPLATE = """You are F1-Slipstream, an expert Formula 1 analyst.
+SEARCH_ONLY_TEMPLATE = """You are ChatFormula1, an expert Formula 1 analyst.
 
 **Recent Information from Search:**
 {search_context}
@@ -117,7 +121,7 @@ SEARCH_ONLY_PROMPT = PromptTemplate(
 
 
 # Conversation-aware RAG prompt with history
-CONVERSATIONAL_RAG_TEMPLATE = """You are F1-Slipstream, an expert Formula 1 analyst engaged in a conversation.
+CONVERSATIONAL_RAG_TEMPLATE = """You are ChatFormula1, an expert Formula 1 analyst engaged in a conversation.
 
 **Retrieved Context:**
 {context}
@@ -138,63 +142,65 @@ CONVERSATIONAL_RAG_TEMPLATE = """You are F1-Slipstream, an expert Formula 1 anal
 Provide a natural, conversational response that builds on the discussion.
 """
 
-CONVERSATIONAL_RAG_PROMPT = ChatPromptTemplate.from_messages([
-    SystemMessage(content="You are F1-Slipstream, an expert Formula 1 analyst."),
-    MessagesPlaceholder(variable_name="chat_history", optional=True),
-    HumanMessagePromptTemplate.from_template(
-        """**Retrieved Context:**
+CONVERSATIONAL_RAG_PROMPT = ChatPromptTemplate.from_messages(
+    [
+        SystemMessage(content="You are ChatFormula1, an expert Formula 1 analyst."),
+        MessagesPlaceholder(variable_name="chat_history", optional=True),
+        HumanMessagePromptTemplate.from_template(
+            """**Retrieved Context:**
 {context}
 
 **Current Question:**
 {query}
 
 Use the context above and our conversation history to answer the question."""
-    ),
-])
+        ),
+    ]
+)
 
 
 def format_vector_context(documents: List[dict]) -> str:
     """Format vector store documents into context string.
-    
+
     Args:
         documents: List of retrieved documents with content and metadata
-        
+
     Returns:
         Formatted context string
     """
     if not documents:
         return "No relevant historical context found."
-    
+
     context_parts = []
     for i, doc in enumerate(documents, 1):
         content = doc.get("content", "")
         metadata = doc.get("metadata", {})
-        
+
         source = metadata.get("source", "Unknown")
         year = metadata.get("year", "N/A")
         category = metadata.get("category", "General")
-        
+
         context_parts.append(
             f"[Document {i}] ({category}, {year})\n"
             f"Source: {source}\n"
             f"Content: {content}\n"
         )
-    
+
     return "\n---\n".join(context_parts)
 
 
 def format_search_context(search_results: List[dict]) -> str:
     """Format search results into context string.
-    
+
     Args:
         search_results: List of search results with title, content, url, date
-        
+
     Returns:
         Formatted context string
     """
     if not search_results:
         return "No recent search results available."
-    
+
     context_parts = []
     for i, result in enumerate(search_results, 1):
         title = result.get("title", "Untitled")
@@ -202,43 +208,43 @@ def format_search_context(search_results: List[dict]) -> str:
         url = result.get("url", "")
         date = result.get("published_date", "Recent")
         source = result.get("source", "Web")
-        
+
         context_parts.append(
             f"[Result {i}] {title}\n"
             f"Source: {source} | Date: {date}\n"
             f"URL: {url}\n"
             f"Content: {content}\n"
         )
-    
+
     return "\n---\n".join(context_parts)
 
 
 def format_conversation_history(messages: List[dict], max_messages: int = 10) -> str:
     """Format conversation history for prompt inclusion.
-    
+
     Args:
         messages: List of message dicts with 'role' and 'content'
         max_messages: Maximum number of recent messages to include
-        
+
     Returns:
         Formatted conversation history string
     """
     if not messages:
         return "No previous conversation."
-    
+
     # Take only the most recent messages
     recent_messages = messages[-max_messages:]
-    
+
     formatted = []
     for msg in recent_messages:
         role = msg.get("role", "unknown")
         content = msg.get("content", "")
-        
+
         if role == "user":
             formatted.append(f"User: {content}")
         elif role == "assistant":
             formatted.append(f"Assistant: {content}")
-    
+
     return "\n".join(formatted)
 
 
@@ -260,18 +266,18 @@ def create_rag_prompt_with_citations(
     chat_history: Optional[str] = None,
 ) -> str:
     """Create a complete RAG prompt with all context and citation requirements.
-    
+
     Args:
         vector_context: Formatted vector store context
         search_context: Formatted search results context
         query: User's question
         chat_history: Optional formatted conversation history
-        
+
     Returns:
         Complete prompt string ready for LLM
     """
     prompt_parts = [
-        "You are F1-Slipstream, an expert Formula 1 analyst.",
+        "You are ChatFormula1, an expert Formula 1 analyst.",
         "",
         "**Context from Knowledge Base:**",
         vector_context,
@@ -280,27 +286,31 @@ def create_rag_prompt_with_citations(
         search_context,
         "",
     ]
-    
+
     if chat_history:
-        prompt_parts.extend([
-            "**Conversation History:**",
-            chat_history,
+        prompt_parts.extend(
+            [
+                "**Conversation History:**",
+                chat_history,
+                "",
+            ]
+        )
+
+    prompt_parts.extend(
+        [
+            SOURCE_ATTRIBUTION_INSTRUCTION,
             "",
-        ])
-    
-    prompt_parts.extend([
-        SOURCE_ATTRIBUTION_INSTRUCTION,
-        "",
-        f"**User Question:** {query}",
-        "",
-        "Provide a comprehensive, well-cited answer using the context above.",
-    ])
-    
+            f"**User Question:** {query}",
+            "",
+            "Provide a comprehensive, well-cited answer using the context above.",
+        ]
+    )
+
     return "\n".join(prompt_parts)
 
 
 # Prompt for handling insufficient context
-INSUFFICIENT_CONTEXT_TEMPLATE = """You are F1-Slipstream, an expert Formula 1 analyst.
+INSUFFICIENT_CONTEXT_TEMPLATE = """You are ChatFormula1, an expert Formula 1 analyst.
 
 **Available Context:**
 {context}
@@ -327,7 +337,7 @@ INSUFFICIENT_CONTEXT_PROMPT = PromptTemplate(
 
 
 # Multi-source synthesis prompt
-MULTI_SOURCE_SYNTHESIS_TEMPLATE = """You are F1-Slipstream, synthesizing information from multiple sources.
+MULTI_SOURCE_SYNTHESIS_TEMPLATE = """You are ChatFormula1, synthesizing information from multiple sources.
 
 **Historical Data:**
 {historical_context}

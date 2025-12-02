@@ -33,12 +33,12 @@ app_state = {
 
 async def _process_background_tasks():
     """Process background tasks from the queue.
-    
+
     This coroutine runs continuously, processing tasks from the queue
     in the background without blocking API requests.
     """
     logger.info("background_task_processor_started")
-    
+
     while True:
         try:
             # Get task from queue (wait up to 1 second)
@@ -50,33 +50,33 @@ async def _process_background_tasks():
             except asyncio.TimeoutError:
                 # No tasks in queue, continue loop
                 continue
-            
+
             task_id = task_data.get("task_id")
             task_type = task_data.get("type")
             task_func = task_data.get("func")
             task_args = task_data.get("args", ())
             task_kwargs = task_data.get("kwargs", {})
-            
+
             logger.info(
                 "processing_background_task",
                 task_id=task_id,
                 task_type=task_type,
             )
-            
+
             # Update task status
             app_state["background_tasks"][task_id] = {
                 "status": "running",
                 "type": task_type,
                 "started_at": time.time(),
             }
-            
+
             try:
                 # Execute task
                 if asyncio.iscoroutinefunction(task_func):
                     result = await task_func(*task_args, **task_kwargs)
                 else:
                     result = task_func(*task_args, **task_kwargs)
-                
+
                 # Update task status
                 app_state["background_tasks"][task_id] = {
                     "status": "completed",
@@ -85,13 +85,13 @@ async def _process_background_tasks():
                     "completed_at": time.time(),
                     "result": result,
                 }
-                
+
                 logger.info(
                     "background_task_completed",
                     task_id=task_id,
                     task_type=task_type,
                 )
-                
+
             except Exception as e:
                 # Update task status with error
                 app_state["background_tasks"][task_id] = {
@@ -101,17 +101,17 @@ async def _process_background_tasks():
                     "failed_at": time.time(),
                     "error": str(e),
                 }
-                
+
                 logger.error(
                     "background_task_failed",
                     task_id=task_id,
                     task_type=task_type,
                     error=str(e),
                 )
-            
+
             # Mark task as done in queue
             app_state["task_queue"].task_done()
-            
+
         except asyncio.CancelledError:
             logger.info("background_task_processor_cancelled")
             break
@@ -132,18 +132,18 @@ async def submit_background_task(
     **kwargs,
 ) -> str:
     """Submit a task to the background queue.
-    
+
     Args:
         task_type: Type/name of the task
         task_func: Function to execute
         *args: Positional arguments for the function
         **kwargs: Keyword arguments for the function
-        
+
     Returns:
         Task ID for tracking
     """
     task_id = str(uuid.uuid4())
-    
+
     task_data = {
         "task_id": task_id,
         "type": task_type,
@@ -151,32 +151,32 @@ async def submit_background_task(
         "args": args,
         "kwargs": kwargs,
     }
-    
+
     # Add to queue
     await app_state["task_queue"].put(task_data)
-    
+
     # Initialize task status
     app_state["background_tasks"][task_id] = {
         "status": "queued",
         "type": task_type,
         "queued_at": time.time(),
     }
-    
+
     logger.info(
         "background_task_submitted",
         task_id=task_id,
         task_type=task_type,
     )
-    
+
     return task_id
 
 
 def get_task_status(task_id: str) -> Dict[str, Any]:
     """Get the status of a background task.
-    
+
     Args:
         task_id: Task ID to check
-        
+
     Returns:
         Task status dictionary
     """
@@ -189,13 +189,13 @@ def get_task_status(task_id: str) -> Dict[str, Any]:
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Lifespan context manager for FastAPI application.
-    
+
     Handles startup and shutdown events for initializing and cleaning up
     application dependencies.
-    
+
     Args:
         app: FastAPI application instance
-        
+
     Yields:
         None
     """
@@ -208,26 +208,26 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         host=config.api_host,
         port=config.api_port,
     )
-    
+
     try:
         # Initialize dependencies
         from src.agent.graph import F1AgentGraph
         from src.search.tavily_client import TavilyClient
         from src.vector_store.manager import VectorStoreManager
-        
+
         logger.info("initializing_dependencies")
-        
+
         # Initialize vector store
         vector_store = VectorStoreManager(config)
         await vector_store.initialize()
         app_state["vector_store"] = vector_store
         logger.info("vector_store_initialized")
-        
+
         # Initialize Tavily client
         tavily_client = TavilyClient(config)
         app_state["tavily_client"] = tavily_client
         logger.info("tavily_client_initialized")
-        
+
         # Initialize agent graph
         agent_graph = F1AgentGraph(
             config=config,
@@ -237,27 +237,27 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         agent_graph.compile()
         app_state["agent_graph"] = agent_graph
         logger.info("agent_graph_initialized")
-        
+
         # Initialize background task queue
         app_state["task_queue"] = asyncio.Queue()
         logger.info("background_task_queue_initialized")
-        
+
         # Start background task processor
         task_processor = asyncio.create_task(_process_background_tasks())
         app_state["task_processor"] = task_processor
         logger.info("background_task_processor_started")
-        
+
         logger.info("api_startup_complete")
-        
+
     except Exception as e:
         logger.error("api_startup_failed", error=str(e), exc_info=True)
         raise
-    
+
     yield
-    
+
     # Shutdown
     logger.info("api_shutting_down")
-    
+
     # Stop background task processor
     if "task_processor" in app_state and app_state["task_processor"]:
         try:
@@ -269,7 +269,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
                 pass
         except Exception as e:
             logger.error("task_processor_cleanup_failed", error=str(e))
-    
+
     # Clean up resources
     if app_state["vector_store"]:
         try:
@@ -278,21 +278,21 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             await app_state["vector_store"].close()
         except Exception as e:
             logger.error("vector_store_cleanup_failed", error=str(e))
-    
+
     logger.info("api_shutdown_complete")
 
 
 def create_app() -> FastAPI:
     """Create and configure FastAPI application.
-    
+
     Returns:
         Configured FastAPI application instance
     """
     config = get_settings()
-    
+
     # Create FastAPI app with OpenAPI documentation
     app = FastAPI(
-        title="F1-Slipstream API",
+        title="ChatFormula1 API",
         description=(
             "AI-powered Formula 1 expert chatbot API with RAG architecture. "
             "Provides real-time F1 information, predictions, and insights through "
@@ -304,31 +304,36 @@ def create_app() -> FastAPI:
         openapi_url="/openapi.json",
         lifespan=lifespan,
     )
-    
+
     # Configure CORS middleware
     if config.enable_cors:
         cors_origins = config.cors_allow_origins
         if not config.is_development:
             # In production, only allow configured origins
             cors_origins = [
-                origin for origin in cors_origins
+                origin
+                for origin in cors_origins
                 if not origin.startswith("http://localhost")
             ]
-        
+
         app.add_middleware(
             CORSMiddleware,
             allow_origins=cors_origins,
             allow_credentials=True,
             allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
             allow_headers=["*"],
-            expose_headers=["X-Request-ID", "X-RateLimit-Limit-Minute", 
-                          "X-RateLimit-Remaining-Minute", "X-RateLimit-Limit-Hour",
-                          "X-RateLimit-Remaining-Hour"],
+            expose_headers=[
+                "X-Request-ID",
+                "X-RateLimit-Limit-Minute",
+                "X-RateLimit-Remaining-Minute",
+                "X-RateLimit-Limit-Hour",
+                "X-RateLimit-Remaining-Hour",
+            ],
         )
-    
+
     # Add security middleware
     from src.security.middleware import SecurityMiddleware
-    
+
     app.add_middleware(
         SecurityMiddleware,
         enable_rate_limiting=config.enable_rate_limiting,
@@ -337,28 +342,28 @@ def create_app() -> FastAPI:
         requests_per_hour=config.rate_limit_per_hour,
         strict_validation=config.strict_input_validation,
     )
-    
+
     # Add request logging middleware
     @app.middleware("http")
     async def log_requests(request: Request, call_next):
         """Log all HTTP requests with timing and metadata.
-        
+
         Args:
             request: Incoming HTTP request
             call_next: Next middleware/handler in chain
-            
+
         Returns:
             HTTP response
         """
         from src.config.logging import set_request_id, clear_context
-        
+
         # Generate request ID
         request_id = str(uuid.uuid4())
         request.state.request_id = request_id
-        
+
         # Set request ID in context for correlation
         set_request_id(request_id)
-        
+
         # Log request
         start_time = time.time()
         logger.info(
@@ -369,14 +374,14 @@ def create_app() -> FastAPI:
             client_host=request.client.host if request.client else None,
             user_agent=request.headers.get("user-agent"),
         )
-        
+
         try:
             # Process request
             response = await call_next(request)
-            
+
             # Calculate duration
             duration_ms = (time.time() - start_time) * 1000
-            
+
             # Log response
             logger.info(
                 "http_request_completed",
@@ -385,19 +390,19 @@ def create_app() -> FastAPI:
                 status_code=response.status_code,
                 duration_ms=round(duration_ms, 2),
             )
-            
+
             # Add request ID to response headers
             response.headers["X-Request-ID"] = request_id
-            
+
             # Clear context after request
             clear_context()
-            
+
             return response
-            
+
         except Exception as e:
             # Calculate duration
             duration_ms = (time.time() - start_time) * 1000
-            
+
             # Log error
             logger.error(
                 "http_request_failed",
@@ -407,10 +412,10 @@ def create_app() -> FastAPI:
                 duration_ms=round(duration_ms, 2),
                 exc_info=True,
             )
-            
+
             # Clear context after error
             clear_context()
-            
+
             # Return error response
             return JSONResponse(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -421,21 +426,21 @@ def create_app() -> FastAPI:
                 },
                 headers={"X-Request-ID": request_id},
             )
-    
+
     # Add exception handler
     @app.exception_handler(Exception)
     async def global_exception_handler(request: Request, exc: Exception):
         """Global exception handler for unhandled errors.
-        
+
         Args:
             request: HTTP request that caused the error
             exc: Exception that was raised
-            
+
         Returns:
             JSON error response
         """
         request_id = getattr(request.state, "request_id", "unknown")
-        
+
         logger.error(
             "unhandled_exception",
             request_id=request_id,
@@ -443,7 +448,7 @@ def create_app() -> FastAPI:
             error=str(exc),
             exc_info=True,
         )
-        
+
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content={
@@ -453,21 +458,21 @@ def create_app() -> FastAPI:
             },
             headers={"X-Request-ID": request_id},
         )
-    
+
     # Register routers
     from src.api.routes import admin, chat, health
-    
+
     app.include_router(health.router, tags=["Health"])
     app.include_router(chat.router, prefix="/api", tags=["Chat"])
     app.include_router(admin.router, prefix="/api/admin", tags=["Admin"])
-    
+
     logger.info(
         "fastapi_app_created",
         title=app.title,
         version=app.version,
         docs_url=app.docs_url,
     )
-    
+
     return app
 
 
@@ -477,18 +482,18 @@ app = create_app()
 
 def main() -> None:
     """Run the FastAPI application with uvicorn.
-    
+
     This is the entry point for the f1-api CLI command.
     """
     config = get_settings()
-    
+
     logger.info(
         "starting_uvicorn_server",
         host=config.api_host,
         port=config.api_port,
         reload=config.api_reload,
     )
-    
+
     uvicorn.run(
         "src.api.main:app",
         host=config.api_host,

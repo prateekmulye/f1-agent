@@ -10,7 +10,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 def validate_imports() -> bool:
     """Validate that all core modules can be imported.
-    
+
     Returns:
         bool: True if all imports succeed
     """
@@ -36,7 +36,7 @@ def validate_imports() -> bool:
 
 def validate_configuration() -> bool:
     """Validate configuration loading.
-    
+
     Returns:
         bool: True if configuration is valid
     """
@@ -65,7 +65,7 @@ def validate_configuration() -> bool:
 
 def validate_logging() -> bool:
     """Validate logging setup.
-    
+
     Returns:
         bool: True if logging works
     """
@@ -84,7 +84,7 @@ def validate_logging() -> bool:
 
 def validate_exceptions() -> bool:
     """Validate exception classes.
-    
+
     Returns:
         bool: True if exceptions work correctly
     """
@@ -110,7 +110,7 @@ def validate_exceptions() -> bool:
 
 def validate_project_structure() -> bool:
     """Validate project directory structure.
-    
+
     Returns:
         bool: True if structure is correct
     """
@@ -173,7 +173,7 @@ def validate_project_structure() -> bool:
 
 def main() -> int:
     """Run all validation checks.
-    
+
     Returns:
         int: Exit code (0 for success, 1 for failure)
     """

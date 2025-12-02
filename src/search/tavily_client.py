@@ -22,7 +22,7 @@ logger = get_logger(__name__)
 
 class TavilyClient:
     """Client for Tavily Search API with F1-specific optimizations.
-    
+
     Supports:
     - Standard search for real-time F1 information
     - Deep crawl for comprehensive content extraction
@@ -30,7 +30,7 @@ class TavilyClient:
     - Rate limiting with token bucket algorithm
     - Automatic retry with exponential backoff
     - Graceful degradation with fallback handling
-    
+
     Attributes:
         settings: Application settings
         rate_limit_requests: Maximum requests per minute (default: 60)
@@ -46,7 +46,7 @@ class TavilyClient:
         enable_cache: bool = True,
     ) -> None:
         """Initialize Tavily client with rate limiting and caching.
-        
+
         Args:
             settings: Application settings
             rate_limit_requests: Maximum requests per time window
@@ -55,28 +55,29 @@ class TavilyClient:
         """
         self.settings = settings
         self._search_tool: Optional[TavilySearchResults] = None
-        
+
         # Rate limiting using token bucket algorithm
         self._rate_limit_requests = rate_limit_requests
         self._rate_limit_window = rate_limit_window
         self._request_timestamps: deque[float] = deque()
         self._rate_limit_lock = asyncio.Lock()
-        
+
         # Fallback handling
         self._fallback_mode = False
         self._consecutive_failures = 0
         self._max_consecutive_failures = 3
         self._last_failure_time: Optional[float] = None
         self._fallback_cooldown = 300.0  # 5 minutes
-        
+
         # Caching
         self._enable_cache = enable_cache
         if enable_cache:
             from ..utils.cache import get_cache_manager
+
             self._cache_manager = get_cache_manager()
         else:
             self._cache_manager = None
-        
+
         logger.info(
             "tavily_client_initialized",
             max_results=settings.tavily_max_results,
@@ -90,7 +91,7 @@ class TavilyClient:
     @property
     def is_available(self) -> bool:
         """Check if Tavily API is available (not in fallback mode).
-        
+
         Returns:
             True if API is available, False if in fallback mode
         """
@@ -104,14 +105,14 @@ class TavilyClient:
                 )
                 self._fallback_mode = False
                 self._consecutive_failures = 0
-        
+
         return not self._fallback_mode
 
     def _record_failure(self) -> None:
         """Record a search failure and potentially enter fallback mode."""
         self._consecutive_failures += 1
         self._last_failure_time = time.time()
-        
+
         if self._consecutive_failures >= self._max_consecutive_failures:
             if not self._fallback_mode:
                 logger.warning(
@@ -135,18 +136,18 @@ class TavilyClient:
 
     def get_fallback_message(self) -> str:
         """Get user-facing message when in fallback mode.
-        
+
         Returns:
             Human-readable error message explaining the situation
         """
         if not self._fallback_mode:
             return ""
-        
+
         time_remaining = 0
         if self._last_failure_time:
             elapsed = time.time() - self._last_failure_time
             time_remaining = max(0, int(self._fallback_cooldown - elapsed))
-        
+
         return (
             "⚠️ Real-time search is temporarily unavailable. "
             "Responses will be based on historical knowledge only. "
@@ -156,7 +157,7 @@ class TavilyClient:
     @property
     def search_tool(self) -> TavilySearchResults:
         """Get or create the Tavily search tool.
-        
+
         Returns:
             TavilySearchResults: Configured search tool
         """
@@ -175,31 +176,31 @@ class TavilyClient:
 
     async def _check_rate_limit(self) -> None:
         """Check and enforce rate limiting using token bucket algorithm.
-        
+
         Raises:
             RateLimitError: If rate limit is exceeded
         """
         async with self._rate_limit_lock:
             current_time = time.time()
-            
+
             # Remove timestamps outside the current window
             while (
                 self._request_timestamps
                 and current_time - self._request_timestamps[0] > self._rate_limit_window
             ):
                 self._request_timestamps.popleft()
-            
+
             # Check if we've exceeded the rate limit
             if len(self._request_timestamps) >= self._rate_limit_requests:
                 oldest_timestamp = self._request_timestamps[0]
                 wait_time = self._rate_limit_window - (current_time - oldest_timestamp)
-                
+
                 logger.warning(
                     "rate_limit_exceeded",
                     requests_in_window=len(self._request_timestamps),
                     wait_time=wait_time,
                 )
-                
+
                 raise RateLimitError(
                     "Tavily API rate limit exceeded",
                     retry_after=int(wait_time) + 1,
@@ -209,7 +210,7 @@ class TavilyClient:
                         "window_seconds": self._rate_limit_window,
                     },
                 )
-            
+
             # Add current request timestamp
             self._request_timestamps.append(current_time)
 
@@ -227,7 +228,7 @@ class TavilyClient:
         use_cache: bool = True,
     ) -> list[dict[str, Any]]:
         """Search for F1 information using Tavily with rate limiting and caching.
-        
+
         Args:
             query: Search query
             max_results: Override default max results
@@ -235,21 +236,21 @@ class TavilyClient:
             include_raw_content: Override default include_raw_content setting
             search_depth: Override default search depth ("basic" or "advanced")
             use_cache: Whether to use cached results if available
-            
+
         Returns:
             List of search results with content, URL, and metadata
-            
+
         Raises:
             SearchAPIError: If search fails
             RateLimitError: If rate limit is exceeded
-            
+
         Example:
             results = await client.search("Max Verstappen 2024 championship")
         """
         # Resolve parameters
         final_max_results = max_results or self.settings.tavily_max_results
         final_search_depth = search_depth or self.settings.tavily_search_depth
-        
+
         # Check cache first
         if use_cache and self._enable_cache and self._cache_manager:
             cache_key = self._cache_manager.get_search_cache_key(
@@ -261,28 +262,37 @@ class TavilyClient:
             if cached_results is not None:
                 logger.info("tavily_search_cache_hit", query=query)
                 return cached_results
-        
+
         try:
             # Check rate limit before making request
             await self._check_rate_limit()
-            
+
             logger.info("tavily_search_started", query=query)
 
             # Create a custom search tool if overrides are provided
             if any(
                 param is not None
-                for param in [max_results, include_answer, include_raw_content, search_depth]
+                for param in [
+                    max_results,
+                    include_answer,
+                    include_raw_content,
+                    search_depth,
+                ]
             ):
                 search_tool = TavilySearchResults(
                     api_key=self.settings.tavily_api_key,
                     max_results=final_max_results,
                     search_depth=final_search_depth,
-                    include_answer=include_answer
-                    if include_answer is not None
-                    else self.settings.tavily_include_answer,
-                    include_raw_content=include_raw_content
-                    if include_raw_content is not None
-                    else self.settings.tavily_include_raw_content,
+                    include_answer=(
+                        include_answer
+                        if include_answer is not None
+                        else self.settings.tavily_include_answer
+                    ),
+                    include_raw_content=(
+                        include_raw_content
+                        if include_raw_content is not None
+                        else self.settings.tavily_include_raw_content
+                    ),
                     include_images=self.settings.tavily_include_images,
                     include_domains=self.settings.tavily_include_domains,
                     exclude_domains=self.settings.tavily_exclude_domains,
@@ -345,22 +355,22 @@ class TavilyClient:
         search_depth: Optional[str] = None,
     ) -> tuple[list[dict[str, Any]], Optional[str]]:
         """Search with graceful degradation - returns empty results on failure.
-        
+
         This method never raises exceptions, making it safe for use in agent
         workflows where fallback to vector store is acceptable.
-        
+
         Args:
             query: Search query
             max_results: Override default max results
             include_answer: Override default include_answer setting
             include_raw_content: Override default include_raw_content setting
             search_depth: Override default search depth ("basic" or "advanced")
-            
+
         Returns:
             Tuple of (results, error_message):
             - results: List of search results (empty if failed)
             - error_message: User-facing error message (None if successful)
-            
+
         Example:
             results, error = await client.safe_search("F1 news")
             if error:
@@ -372,7 +382,7 @@ class TavilyClient:
             error_msg = self.get_fallback_message()
             logger.info("search_skipped_fallback_mode", query=query)
             return [], error_msg
-        
+
         try:
             results = await self.search(
                 query=query,
@@ -382,7 +392,7 @@ class TavilyClient:
                 search_depth=search_depth,
             )
             return results, None
-            
+
         except RateLimitError as e:
             error_msg = (
                 "⚠️ Search rate limit reached. "
@@ -391,7 +401,7 @@ class TavilyClient:
             )
             logger.warning("safe_search_rate_limited", query=query)
             return [], error_msg
-            
+
         except SearchAPIError as e:
             error_msg = (
                 "⚠️ Real-time search is temporarily unavailable. "
@@ -403,7 +413,7 @@ class TavilyClient:
                 error=str(e),
             )
             return [], error_msg
-            
+
         except Exception as e:
             error_msg = (
                 "⚠️ An unexpected error occurred with real-time search. "
@@ -423,18 +433,18 @@ class TavilyClient:
         context: Optional[str] = None,
     ) -> dict[str, Any]:
         """Search with additional context for more relevant results.
-        
+
         This method enhances the query with contextual information to improve
         search relevance. Rate limiting and retry logic are handled by the
         underlying search method.
-        
+
         Args:
             query: Search query
             context: Additional context to refine search (e.g., "2024 season")
-            
+
         Returns:
             Dictionary with search results and AI-generated answer
-            
+
         Raises:
             SearchAPIError: If search fails
             RateLimitError: If rate limit is exceeded
@@ -484,14 +494,14 @@ class TavilyClient:
         max_results: int = 5,
     ) -> list[dict[str, Any]]:
         """Get the latest F1 news articles.
-        
+
         Args:
             topic: Specific F1 topic (e.g., "race results", "driver transfers")
             max_results: Number of articles to retrieve
-            
+
         Returns:
             List of news articles with content and metadata
-            
+
         Example:
             news = await client.get_latest_f1_news("Monaco Grand Prix")
         """
@@ -511,19 +521,19 @@ class TavilyClient:
         max_depth: Optional[int] = None,
     ) -> list[Document]:
         """Crawl an F1 website for comprehensive content extraction.
-        
+
         This is useful for ingesting entire articles or pages into the vector DB.
-        
+
         Args:
             url: URL to crawl
             max_depth: Maximum crawl depth (default from settings)
-            
+
         Returns:
             List of Document objects with extracted content
-            
+
         Raises:
             SearchAPIError: If crawl fails
-            
+
         Example:
             docs = await client.crawl_f1_source("https://formula1.com/article")
         """
@@ -582,16 +592,16 @@ class TavilyClient:
         query: Optional[str] = None,
     ) -> list[dict[str, Any]]:
         """Map an F1 domain to discover relevant pages.
-        
+
         Useful for discovering new content on trusted F1 sources.
-        
+
         Args:
             domain: Domain to map (e.g., "formula1.com")
             query: Optional query to filter results
-            
+
         Returns:
             List of discovered pages with metadata
-            
+
         Example:
             pages = await client.map_f1_domain("autosport.com", "2024 season")
         """
@@ -634,30 +644,30 @@ class TavilyClient:
         result: dict[str, Any],
     ) -> Optional[dict[str, Any]]:
         """Parse and normalize a single Tavily search result.
-        
+
         Args:
             result: Raw search result from Tavily API
-            
+
         Returns:
             Normalized result dictionary or None if invalid
         """
         try:
             # Extract content (prefer raw_content for completeness)
             content = result.get("raw_content") or result.get("content", "")
-            
+
             if not content or not content.strip():
                 logger.debug(
                     "skipping_empty_result",
                     url=result.get("url", "unknown"),
                 )
                 return None
-            
+
             # Extract and validate URL
             url = result.get("url", "")
             if not url:
                 logger.warning("result_missing_url", title=result.get("title", ""))
                 return None
-            
+
             # Extract metadata with defaults
             normalized = {
                 "content": content.strip(),
@@ -667,7 +677,7 @@ class TavilyClient:
                 "published_date": result.get("published_date", ""),
                 "raw_content": result.get("raw_content", ""),
             }
-            
+
             # Validate score is in reasonable range
             if not 0.0 <= normalized["score"] <= 1.0:
                 logger.warning(
@@ -676,9 +686,9 @@ class TavilyClient:
                     score=normalized["score"],
                 )
                 normalized["score"] = max(0.0, min(1.0, normalized["score"]))
-            
+
             return normalized
-            
+
         except Exception as e:
             logger.error(
                 "result_parsing_failed",
@@ -692,36 +702,36 @@ class TavilyClient:
         results: list[dict[str, Any]],
     ) -> list[dict[str, Any]]:
         """Remove duplicate results based on URL and content similarity.
-        
+
         Args:
             results: List of normalized search results
-            
+
         Returns:
             Deduplicated list of results
         """
         seen_urls: set[str] = set()
         seen_content_hashes: set[int] = set()
         deduplicated = []
-        
+
         for result in results:
             url = result["url"]
             content = result["content"]
-            
+
             # Check for duplicate URL
             if url in seen_urls:
                 logger.debug("duplicate_url_skipped", url=url)
                 continue
-            
+
             # Check for duplicate content (using hash for efficiency)
             content_hash = hash(content[:500])  # Hash first 500 chars
             if content_hash in seen_content_hashes:
                 logger.debug("duplicate_content_skipped", url=url)
                 continue
-            
+
             seen_urls.add(url)
             seen_content_hashes.add(content_hash)
             deduplicated.append(result)
-        
+
         if len(deduplicated) < len(results):
             logger.info(
                 "results_deduplicated",
@@ -729,7 +739,7 @@ class TavilyClient:
                 deduplicated_count=len(deduplicated),
                 removed=len(results) - len(deduplicated),
             )
-        
+
         return deduplicated
 
     def convert_to_documents(
@@ -738,20 +748,20 @@ class TavilyClient:
         deduplicate: bool = True,
     ) -> list[Document]:
         """Convert Tavily search results to LangChain Documents.
-        
+
         This method:
         1. Parses and normalizes each result
         2. Validates metadata (dates, sources, relevance)
         3. Optionally deduplicates results
         4. Creates LangChain Document objects
-        
+
         Args:
             search_results: List of search results from Tavily
             deduplicate: Whether to remove duplicate results (default: True)
-            
+
         Returns:
             List of Document objects ready for vector DB ingestion
-            
+
         Example:
             results = await client.search("F1 news")
             documents = client.convert_to_documents(results)
@@ -764,11 +774,11 @@ class TavilyClient:
             normalized = self._parse_and_normalize_result(result)
             if normalized:
                 normalized_results.append(normalized)
-        
+
         # Deduplicate if requested
         if deduplicate:
             normalized_results = self._deduplicate_results(normalized_results)
-        
+
         # Convert to Document objects
         for result in normalized_results:
             doc = Document(

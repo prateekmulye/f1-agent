@@ -47,14 +47,14 @@ def test_settings_environment_properties(test_settings: Settings):
 def test_settings_rejects_invalid_api_keys():
     """Test that invalid API keys are rejected."""
     import os
-    
+
     # Test with placeholder value
     os.environ["OPENAI_API_KEY"] = "your_openai_api_key_here"
     os.environ["PINECONE_API_KEY"] = "test-pinecone-key"
     os.environ["PINECONE_ENVIRONMENT"] = "test-environment"
     os.environ["TAVILY_API_KEY"] = "test-tavily-key"
-    
+
     with pytest.raises(ValidationError) as exc_info:
         Settings()
-    
+
     assert "openai_api_key" in str(exc_info.value).lower()

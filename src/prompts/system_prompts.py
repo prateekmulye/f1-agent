@@ -11,7 +11,7 @@ from langchain_core.messages import SystemMessage
 
 
 # Core F1 Expert System Prompt
-F1_EXPERT_SYSTEM_PROMPT = """You are F1-Slipstream, an expert Formula 1 analyst and historian with comprehensive knowledge of:
+F1_EXPERT_SYSTEM_PROMPT = """You are ChatFormula1, an expert Formula 1 analyst and historian with comprehensive knowledge of:
 
 **Core Expertise:**
 - Current and historical F1 statistics, standings, and race results (1950-present)
@@ -78,27 +78,29 @@ def create_system_prompt(
     additional_context: Optional[str] = None,
 ) -> ChatPromptTemplate:
     """Create a system prompt template with F1 expert persona.
-    
+
     Args:
         include_guardrails: Whether to include off-topic guardrails
         additional_context: Optional additional context to append
-        
+
     Returns:
         ChatPromptTemplate configured with system message
     """
     prompt_parts = [F1_EXPERT_SYSTEM_PROMPT]
-    
+
     if include_guardrails:
         prompt_parts.append(OFF_TOPIC_GUARDRAIL_PROMPT)
-    
+
     if additional_context:
         prompt_parts.append(f"\n**Additional Context:**\n{additional_context}")
-    
+
     system_prompt = "\n\n".join(prompt_parts)
-    
-    return ChatPromptTemplate.from_messages([
-        SystemMessagePromptTemplate.from_template(system_prompt),
-    ])
+
+    return ChatPromptTemplate.from_messages(
+        [
+            SystemMessagePromptTemplate.from_template(system_prompt),
+        ]
+    )
 
 
 def create_role_based_system_prompt(
@@ -106,11 +108,11 @@ def create_role_based_system_prompt(
     user_expertise: str = "intermediate",
 ) -> SystemMessage:
     """Create a role-based system prompt tailored to user expertise.
-    
+
     Args:
         role: The role of the assistant (expert, analyst, educator)
         user_expertise: User's F1 knowledge level (beginner, intermediate, expert)
-        
+
     Returns:
         SystemMessage with role-specific instructions
     """
@@ -119,18 +121,18 @@ def create_role_based_system_prompt(
         "analyst": "You are an F1 data analyst focusing on statistics and performance metrics.",
         "educator": "You are an F1 educator helping newcomers understand the sport.",
     }
-    
+
     expertise_adjustments = {
         "beginner": "Explain technical terms and provide context for F1 concepts. Avoid jargon.",
         "intermediate": "Balance technical detail with accessibility. Assume basic F1 knowledge.",
         "expert": "Use technical terminology freely. Provide deep analysis and nuanced insights.",
     }
-    
+
     role_instruction = role_prompts.get(role, role_prompts["expert"])
     expertise_instruction = expertise_adjustments.get(
         user_expertise, expertise_adjustments["intermediate"]
     )
-    
+
     prompt = f"""{F1_EXPERT_SYSTEM_PROMPT}
 
 **Role Specialization:**
@@ -141,16 +143,16 @@ def create_role_based_system_prompt(
 
 {OFF_TOPIC_GUARDRAIL_PROMPT}
 """
-    
+
     return SystemMessage(content=prompt)
 
 
 def validate_prompt_safety(user_input: str) -> tuple[bool, Optional[str]]:
     """Validate user input for prompt injection attempts and off-topic queries.
-    
+
     Args:
         user_input: The user's query
-        
+
     Returns:
         Tuple of (is_safe, warning_message)
     """
@@ -166,50 +168,87 @@ def validate_prompt_safety(user_input: str) -> tuple[bool, Optional[str]]:
         "act as",
         "pretend to be",
     ]
-    
+
     user_input_lower = user_input.lower()
-    
+
     for pattern in injection_patterns:
         if pattern in user_input_lower:
-            return False, "Your query contains patterns that cannot be processed. Please rephrase your F1 question."
-    
+            return (
+                False,
+                "Your query contains patterns that cannot be processed. Please rephrase your F1 question.",
+            )
+
     # Check for extremely long inputs (potential abuse)
     if len(user_input) > 2000:
-        return False, "Your query is too long. Please keep questions under 2000 characters."
-    
+        return (
+            False,
+            "Your query is too long. Please keep questions under 2000 characters.",
+        )
+
     # Basic F1 relevance check (keywords)
     f1_keywords = [
-        "f1", "formula 1", "formula one", "grand prix", "gp",
-        "driver", "team", "race", "circuit", "championship",
-        "qualifying", "pole", "podium", "pit", "tire", "tyre",
-        "drs", "kers", "ers", "fia", "ferrari", "mercedes",
-        "red bull", "mclaren", "verstappen", "hamilton", "leclerc",
+        "f1",
+        "formula 1",
+        "formula one",
+        "grand prix",
+        "gp",
+        "driver",
+        "team",
+        "race",
+        "circuit",
+        "championship",
+        "qualifying",
+        "pole",
+        "podium",
+        "pit",
+        "tire",
+        "tyre",
+        "drs",
+        "kers",
+        "ers",
+        "fia",
+        "ferrari",
+        "mercedes",
+        "red bull",
+        "mclaren",
+        "verstappen",
+        "hamilton",
+        "leclerc",
     ]
-    
+
     # If input is very short, skip keyword check
     if len(user_input.split()) < 3:
         return True, None
-    
+
     # Check if any F1 keyword is present
     has_f1_keyword = any(keyword in user_input_lower for keyword in f1_keywords)
-    
+
     if not has_f1_keyword and len(user_input.split()) > 5:
-        return True, "This doesn't seem to be about Formula 1. I specialize in F1 topics. Could you ask an F1-related question?"
-    
+        return (
+            True,
+            "This doesn't seem to be about Formula 1. I specialize in F1 topics. Could you ask an F1-related question?",
+        )
+
     return True, None
 
 
 # Pre-configured prompt templates for common scenarios
-CONCISE_SYSTEM_PROMPT = ChatPromptTemplate.from_messages([
-    SystemMessage(content="""You are F1-Slipstream, an F1 expert. Provide concise, accurate answers about Formula 1.
+CONCISE_SYSTEM_PROMPT = ChatPromptTemplate.from_messages(
+    [
+        SystemMessage(
+            content="""You are ChatFormula1, an F1 expert. Provide concise, accurate answers about Formula 1.
     
-Keep responses brief but informative. Cite specific data when relevant. Stay focused on F1 topics only.""")
-])
+Keep responses brief but informative. Cite specific data when relevant. Stay focused on F1 topics only."""
+        )
+    ]
+)
 
 DETAILED_SYSTEM_PROMPT = create_system_prompt(include_guardrails=True)
 
-PREDICTION_SYSTEM_PROMPT = ChatPromptTemplate.from_messages([
-    SystemMessage(content=f"""{F1_EXPERT_SYSTEM_PROMPT}
+PREDICTION_SYSTEM_PROMPT = ChatPromptTemplate.from_messages(
+    [
+        SystemMessage(
+            content=f"""{F1_EXPERT_SYSTEM_PROMPT}
 
 **Prediction Mode:**
 When making predictions:
@@ -222,5 +261,7 @@ When making predictions:
 
 Always explain your reasoning with supporting data points.
 {OFF_TOPIC_GUARDRAIL_PROMPT}
-""")
-])
+"""
+        )
+    ]
+)

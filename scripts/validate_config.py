@@ -98,14 +98,13 @@ class ConfigValidator:
             for var in self.PRODUCTION_REQUIRED:
                 value = os.getenv(var)
                 if not value:
-                    self.errors.append(
-                        f"Missing production-required variable: {var}"
-                    )
+                    self.errors.append(f"Missing production-required variable: {var}")
 
             # Check SECRET_KEY strength
             secret_key = os.getenv("SECRET_KEY")
             if secret_key and (
-                len(secret_key) < 32 or secret_key == "dev-secret-key-change-in-production"
+                len(secret_key) < 32
+                or secret_key == "dev-secret-key-change-in-production"
             ):
                 self.errors.append(
                     "SECRET_KEY must be at least 32 characters and not use default value"
@@ -207,9 +206,7 @@ class ConfigValidator:
                     or value.startswith("https://")
                     or value.startswith("redis://")
                 ):
-                    self.warnings.append(
-                        f"{var} should be a valid URL, got: {value}"
-                    )
+                    self.warnings.append(f"{var} should be a valid URL, got: {value}")
 
     def validate_cors_origins(self) -> None:
         """Validate CORS configuration"""
@@ -271,9 +268,7 @@ def main():
     """Main entry point"""
     import argparse
 
-    parser = argparse.ArgumentParser(
-        description="Validate F1-Slipstream configuration"
-    )
+    parser = argparse.ArgumentParser(description="Validate F1-Slipstream configuration")
     parser.add_argument(
         "--env",
         choices=["development", "staging", "production"],
