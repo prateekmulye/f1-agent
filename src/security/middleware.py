@@ -4,6 +4,8 @@ This module provides middleware for input validation, rate limiting,
 and request validation.
 """
 
+from typing import Optional
+
 import structlog
 from fastapi import Request, Response, status
 from fastapi.responses import JSONResponse

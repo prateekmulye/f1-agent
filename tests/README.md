@@ -1,6 +1,6 @@
-# F1-Slipstream Agent Tests
+# ChatFormula1 Tests
 
-This directory contains comprehensive tests for the F1-Slipstream agent system.
+This directory contains comprehensive tests for the ChatFormula1 agent system.
 
 ## Test Structure
 
@@ -19,7 +19,11 @@ tests/
 ├── test_integration_tavily.py           # Tavily search integration tests
 ├── test_integration_api.py              # API endpoint integration tests
 ├── test_integration_agent.py            # Agent flow integration tests
-└── test_e2e_user_workflows.py          # End-to-end user workflow tests
+├── test_integration_complete.py         # Complete integration tests
+├── test_e2e_user_workflows.py          # End-to-end user workflow tests
+├── test_requirements_validation.py      # Requirements validation tests
+├── test_user_acceptance.py              # User acceptance tests
+└── test_performance_benchmarks.py       # Performance benchmark tests
 ```
 
 ## Test Categories
@@ -298,6 +302,44 @@ When adding new features:
 3. Add E2E tests for user-facing workflows
 4. Ensure all tests pass before submitting PR
 5. Maintain or improve code coverage
+
+## Validation Tests
+
+### Requirements Validation (test_requirements_validation.py)
+Tests all 12 requirements from the requirements document with 25+ test cases covering:
+- Current F1 data queries
+- Historical conversations
+- Race predictions
+- Real-time search
+- Software engineering best practices
+- RAG pipeline implementation
+- Prompt engineering
+- Error handling and resilience
+
+### User Acceptance Testing (test_user_acceptance.py)
+Tests realistic user scenarios with 35+ test cases covering:
+- Real F1 queries (standings, champions, predictions)
+- Conversation quality and context maintenance
+- Edge cases (empty queries, off-topic, timeouts)
+- UI/UX quality (formatting, citations, error messages)
+- Response quality (accuracy, reasoning, length)
+
+### Performance Benchmarks (test_performance_benchmarks.py)
+Measures performance metrics with 30+ benchmarks covering:
+- Response time percentiles (P50, P95, P99)
+- Concurrent load tests (10, 50, 100 users)
+- API latency measurements
+- Memory usage profiling
+- Throughput and scalability tests
+
+**Run validation tests:**
+```bash
+# All validation tests
+poetry run pytest tests/test_requirements_validation.py tests/test_user_acceptance.py tests/test_performance_benchmarks.py -v
+
+# With coverage
+poetry run pytest tests/test_requirements_validation.py tests/test_user_acceptance.py tests/test_performance_benchmarks.py --cov=src --cov-report=html
+```
 
 ## Resources
 

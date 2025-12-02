@@ -1,6 +1,6 @@
 # 📚 Documentation Index
 
-Welcome to the F1-Slipstream Agent documentation!
+Welcome to the ChatFormula1 documentation!
 
 ---
 
@@ -110,8 +110,8 @@ Welcome to the F1-Slipstream Agent documentation!
 
 ### Help & Support
 - [Troubleshooting](TROUBLESHOOTING.md) - Fix common issues
-- [GitHub Issues](https://github.com/YOUR_USERNAME/f1-slipstream/issues) - Report bugs
-- [GitHub Discussions](https://github.com/YOUR_USERNAME/f1-slipstream/discussions) - Ask questions
+- [GitHub Issues](https://github.com/YOUR_USERNAME/chatformula1/issues) - Report bugs
+- [GitHub Discussions](https://github.com/YOUR_USERNAME/chatformula1/discussions) - Ask questions
 
 ---
 
@@ -152,8 +152,8 @@ See [Contributing Guide](CONTRIBUTING.md) for details.
 
 - **Setup Issues**: Check [Setup Guide](SETUP.md) and [Troubleshooting](TROUBLESHOOTING.md)
 - **Deployment Issues**: Check [Deployment Guide](DEPLOYMENT.md)
-- **Bug Reports**: Open a [GitHub Issue](https://github.com/YOUR_USERNAME/f1-slipstream/issues)
-- **Questions**: Start a [GitHub Discussion](https://github.com/YOUR_USERNAME/f1-slipstream/discussions)
+- **Bug Reports**: Open a [GitHub Issue](https://github.com/YOUR_USERNAME/chatformula1/issues)
+- **Questions**: Start a [GitHub Discussion](https://github.com/YOUR_USERNAME/chatformula1/discussions)
 
 ---
 
