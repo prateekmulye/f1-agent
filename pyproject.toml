@@ -29,8 +29,8 @@ langchain-text-splitters = "^1.0.0"
 # Vector Store Dependencies - Latest with async support
 pinecone = {extras = ["asyncio"], version = "^7.3.0"}
 
-# Additional LangChain Tools - Latest
-langsmith = "^0.2.11"
+# Additional LangChain Tools - Compatible with LangChain 1.1.0+
+langsmith = "^0.3.45"
 
 # Logging - Latest
 structlog = "^24.4.0"
