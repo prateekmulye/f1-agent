@@ -16,7 +16,7 @@ from src.ingestion.data_loader import (
     RaceSchema,
 )
 from src.ingestion.document_processor import DocumentProcessor
-from src.ingestion/metadata_enricher import MetadataEnricher
+from src.ingestion.metadata_enricher import MetadataEnricher
 from src.vector_store.manager import VectorStoreManager
 
 logger = structlog.get_logger(__name__)
