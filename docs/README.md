@@ -56,6 +56,12 @@ Welcome to the F1-Slipstream Agent documentation!
 
 ### Operations
 
+- **[GitHub Actions CI/CD](GITHUB_ACTIONS.md)** - Automated testing and deployment
+  - Setup instructions
+  - Workflow configuration
+  - Deploy with commit prefix
+  - Monitoring and troubleshooting
+
 - **[Observability](OBSERVABILITY.md)** - Monitoring and logging
   - Logging setup
   - Metrics collection
@@ -117,6 +123,7 @@ docs/
 ├── SETUP.md                           # Local development setup
 ├── DEPLOYMENT.md                      # Production deployment
 ├── CONTRIBUTING.md                    # Contribution guidelines
+├── GITHUB_ACTIONS.md                  # CI/CD with GitHub Actions
 ├── ARCHITECTURE.md                    # System architecture
 ├── API.md                             # API reference
 ├── TAVILY_INTEGRATION.md             # Tavily search integration

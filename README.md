@@ -171,6 +171,25 @@ docker-compose up --build
 
 ## 🎯 Deployment
 
+### Option 1: Automated with GitHub Actions (Recommended)
+
+Deploy automatically on every commit prefixed with `deploy:`:
+
+```bash
+# One-time setup (5 minutes)
+./scripts/setup_github_actions.sh
+
+# Deploy with a single commit
+git commit -m "deploy: Add new feature"
+git push origin main
+```
+
+**What happens**: Code quality checks → Tests → Build → Deploy to Render → Health checks
+
+📖 **Guide**: [GitHub Actions Quick Start](GITHUB_ACTIONS_QUICKSTART.md) | [Full Documentation](docs/GITHUB_ACTIONS.md)
+
+### Option 2: Manual Deployment
+
 Deploy your own instance for free using Render:
 
 1. **Quick Deploy** (15 minutes)
