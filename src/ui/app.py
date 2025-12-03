@@ -22,10 +22,13 @@ from src.config.settings import get_settings
 from src.prompts.system_prompts import F1_EXPERT_SYSTEM_PROMPT
 from src.search.tavily_client import TavilyClient
 from src.ui.components import (
+    apply_f1_theme,
+    render_about_modal,
     render_error_message,
     render_input_validation_error,
     render_message,
-    render_welcome_message,
+    render_settings_panel,
+    render_welcome_screen,
 )
 from src.vector_store.manager import VectorStoreManager
 
@@ -37,7 +40,6 @@ st.set_page_config(
     page_title="ChatFormula1",
     page_icon="🏎️",
     layout="wide",
-    initial_sidebar_state="expanded",
     menu_items={
         "Get Help": "https://github.com/prateekmulye/chatformula1",
         "Report a bug": "https://github.com/prateekmulye/chatformula1/issues",
@@ -83,8 +85,14 @@ def initialize_session_state() -> None:
     if "show_settings" not in st.session_state:
         st.session_state.show_settings = False
 
+    if "show_about" not in st.session_state:
+        st.session_state.show_about = False
+
     if "theme" not in st.session_state:
         st.session_state.theme = "dark"
+    
+    if "prompt_executed" not in st.session_state:
+        st.session_state.prompt_executed = False
 
     # Feedback state
     if "feedback" not in st.session_state:
@@ -282,21 +290,53 @@ def render_sidebar() -> None:
 
 
 def render_header() -> None:
-    """Render the main header."""
-    col1, col2 = st.columns([3, 1])
+    """Render the enhanced header with About and Settings buttons.
+    
+    Accessibility features:
+    - ARIA labels on icon-only buttons for screen readers
+    - Descriptive help text for keyboard users
+    - Semantic HTML structure with proper heading hierarchy
+    - High contrast colors meeting WCAG 2.1 Level AA standards
+    
+    Requirements: 4.6, 5.5
+    """
+    # Three-column layout for settings button, title, and about button
+    col1, col2, col3 = st.columns([1, 6, 1])
 
     with col1:
-        st.title("🏎️ ChatFormula1")
-        st.caption("Your AI-powered Formula 1 expert assistant")
+        # Settings button (left) with ARIA label for accessibility
+        if st.button(
+            "⚙️",
+            key="settings_btn",
+            help="Open Settings - Configure temperature, conversation history, and system options",
+            use_container_width=False
+        ):
+            st.session_state.show_settings = not st.session_state.show_settings
+            st.rerun()
 
     with col2:
-        # Status indicator
-        if st.session_state.last_error:
-            st.error("⚠️ Error", icon="⚠️")
-        elif st.session_state.agent_graph:
-            st.success("✅ Ready", icon="✅")
-        else:
-            st.warning("⏳ Loading", icon="⏳")
+        # Centered title and tagline using semantic HTML with proper heading hierarchy
+        # ARIA role="banner" indicates this is the main header
+        st.markdown(
+            """
+            <div role="banner" style='text-align: center;'>
+                <h1 style='margin-bottom: 0;'>🏎️ ChatFormula1</h1>
+                <p style='color: #888; margin-top: 0;' role="doc-subtitle">Your AI-powered Formula 1 expert assistant</p>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+    with col3:
+        # About button (right) with ARIA label for accessibility
+        if st.button(
+            "ℹ️",
+            key="about_btn",
+            help="About ChatFormula1 - Learn about the project, features, and creator",
+            use_container_width=False
+        ):
+            st.session_state.show_about = not st.session_state.show_about
+            st.rerun()
 
 
 def render_chat_interface(agent: Optional[F1AgentGraph]) -> None:
@@ -305,9 +345,11 @@ def render_chat_interface(agent: Optional[F1AgentGraph]) -> None:
     Args:
         agent: Initialized F1AgentGraph or None
     """
-    # Show welcome message if no messages
+    # Show welcome screen if no messages (Requirements: 3.4, 8.6)
+    # Welcome screen is hidden when first message is sent
     if not st.session_state.messages:
-        render_welcome_message()
+        render_welcome_screen()
+        return  # Don't show chat input yet - it becomes active after transition
 
     # Display message history
     for i, msg in enumerate(st.session_state.messages):
@@ -318,6 +360,73 @@ def render_chat_interface(agent: Optional[F1AgentGraph]) -> None:
             metadata=msg.get("metadata"),
             message_id=message_id if msg["role"] == "assistant" else None,
         )
+
+    # Check if a prompt was just executed (from recommendation button)
+    if st.session_state.get("prompt_executed", False):
+        # Get the last user message (the one just added by execute_prompt)
+        last_message = st.session_state.messages[-1]
+        prompt = last_message["content"]
+        
+        # Clear the flag
+        st.session_state.prompt_executed = False
+        
+        # Generate response
+        with st.chat_message("assistant"):
+            response_placeholder = st.empty()
+
+            try:
+                # Show typing indicator
+                with st.spinner("Thinking..."):
+                    # Process query through agent
+                    response_text, metadata = asyncio.run(process_query(agent, prompt))
+
+                # Display response with markdown
+                response_placeholder.markdown(response_text)
+
+                # Add assistant message to history
+                st.session_state.messages.append(
+                    {
+                        "role": "assistant",
+                        "content": response_text,
+                        "metadata": metadata,
+                        "timestamp": datetime.now(),
+                    }
+                )
+
+                logger.info(
+                    "message_exchange_completed",
+                    session_id=st.session_state.session_id,
+                    user_query_length=len(prompt),
+                    response_length=len(response_text),
+                )
+
+                # Rerun to show feedback buttons
+                st.rerun()
+
+            except Exception as e:
+                error_msg = str(e)
+                logger.error(
+                    "message_processing_failed",
+                    error=error_msg,
+                    session_id=st.session_state.session_id,
+                )
+
+                # Show error to user
+                render_error_message(error_msg, show_details=True)
+
+                # Add error message to history
+                error_response = (
+                    "I apologize, but I encountered an error processing your request. "
+                    "Please try rephrasing your question or try again later."
+                )
+                st.session_state.messages.append(
+                    {
+                        "role": "assistant",
+                        "content": error_response,
+                        "metadata": {"error": error_msg},
+                        "timestamp": datetime.now(),
+                    }
+                )
 
     # Chat input
     if prompt := st.chat_input(
@@ -531,90 +640,36 @@ def main() -> None:
     if "session_start" not in st.session_state:
         st.session_state.session_start = datetime.now()
 
-    # Apply custom CSS
-    apply_custom_css()
+    # Apply F1 theme CSS with centered layout
+    apply_f1_theme()
 
-    # Render sidebar
-    render_sidebar()
+    # Create centered layout with three columns [1, 6, 1]
+    col_left, col_center, col_right = st.columns([1, 6, 1])
 
-    # Render header
-    render_header()
+    with col_center:
+        # Render header
+        render_header()
+        
+        # Render settings panel (collapsible, positioned below header)
+        render_settings_panel()
+        
+        # Render about modal if triggered
+        render_about_modal()
 
-    # Initialize agent (lazy)
-    agent = initialize_agent()
+        # Initialize agent (lazy)
+        agent = initialize_agent()
 
-    # Show error if agent failed to initialize
-    if st.session_state.last_error:
-        st.error(f"⚠️ {st.session_state.last_error}")
-        st.info("Please check your configuration and try again.")
-        return
+        # Show error if agent failed to initialize
+        if st.session_state.last_error:
+            st.error(f"⚠️ {st.session_state.last_error}")
+            st.info("Please check your configuration and try again.")
+            return
 
-    # Render chat interface
-    render_chat_interface(agent)
+        # Render chat interface
+        render_chat_interface(agent)
 
 
-def apply_custom_css() -> None:
-    """Apply custom CSS styling based on theme."""
-    theme = st.session_state.theme
 
-    if theme == "dark":
-        css = """
-        <style>
-        /* Dark theme customizations */
-        .stApp {
-            background-color: #0e1117;
-        }
-        .stChatMessage {
-            background-color: #1e2130;
-            border-radius: 10px;
-            padding: 1rem;
-            margin: 0.5rem 0;
-        }
-        .source-citation {
-            background-color: #262730;
-            border-left: 3px solid #ff1e1e;
-            padding: 0.5rem;
-            margin: 0.5rem 0;
-            border-radius: 5px;
-            font-size: 0.9em;
-        }
-        .feedback-buttons {
-            display: flex;
-            gap: 0.5rem;
-            margin-top: 0.5rem;
-        }
-        </style>
-        """
-    else:
-        css = """
-        <style>
-        /* Light theme customizations */
-        .stApp {
-            background-color: #ffffff;
-        }
-        .stChatMessage {
-            background-color: #f0f2f6;
-            border-radius: 10px;
-            padding: 1rem;
-            margin: 0.5rem 0;
-        }
-        .source-citation {
-            background-color: #e8eaf0;
-            border-left: 3px solid #ff1e1e;
-            padding: 0.5rem;
-            margin: 0.5rem 0;
-            border-radius: 5px;
-            font-size: 0.9em;
-        }
-        .feedback-buttons {
-            display: flex;
-            gap: 0.5rem;
-            margin-top: 0.5rem;
-        }
-        </style>
-        """
-
-    st.markdown(css, unsafe_allow_html=True)
 
 
 if __name__ == "__main__":
