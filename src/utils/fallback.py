@@ -6,7 +6,7 @@ from enum import Enum
 from typing import Any, Callable, Generic, Optional, TypeVar
 
 from ..config.logging import get_logger
-from ..exceptions import SearchAPIError, VectorStoreError, LLMError
+from ..exceptions import LLMError, SearchAPIError, VectorStoreError
 
 logger = get_logger(__name__)
 

@@ -48,6 +48,7 @@ httpx = "^0.28.1"
 tenacity = "^9.0.0"
 aiofiles = "^24.1.0"
 click = "^8.1.8"
+isort = "^7.0.0"
 
 [tool.poetry.group.dev.dependencies]
 # Testing - Latest

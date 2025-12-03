@@ -3,11 +3,11 @@ Free Tier Rate Limiter for ChatFormula1
 Ensures we stay within free tier limits for all services
 """
 
+import threading
 import time
+from collections import defaultdict
 from datetime import datetime, timedelta
 from typing import Dict, Optional
-from collections import defaultdict
-import threading
 
 
 class FreeTierLimiter:

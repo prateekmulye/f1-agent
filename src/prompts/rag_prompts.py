@@ -6,14 +6,10 @@ and search results with user queries to generate informed responses.
 
 from typing import List, Optional
 
-from langchain_core.prompts import (
-    ChatPromptTemplate,
-    MessagesPlaceholder,
-    PromptTemplate,
-    HumanMessagePromptTemplate,
-)
 from langchain_core.messages import SystemMessage
-
+from langchain_core.prompts import (ChatPromptTemplate,
+                                    HumanMessagePromptTemplate,
+                                    MessagesPlaceholder, PromptTemplate)
 
 # RAG prompt for combining vector context with queries
 RAG_CONTEXT_TEMPLATE = """You are ChatFormula1, an expert Formula 1 analyst. Use the provided context to answer the user's question accurately.

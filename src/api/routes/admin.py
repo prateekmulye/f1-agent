@@ -529,6 +529,7 @@ async def get_prometheus_metrics():
         Plain text response with Prometheus metrics
     """
     from fastapi.responses import PlainTextResponse
+
     from src.utils.metrics import get_metrics_collector
 
     logger.debug("exporting_prometheus_metrics")

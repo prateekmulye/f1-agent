@@ -15,7 +15,7 @@ Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7
 import sys
 from datetime import datetime
 from importlib import import_module
-from unittest.mock import MagicMock, Mock, patch, AsyncMock
+from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
 import pytest
 
@@ -650,8 +650,9 @@ class TestAgentInitializationAndProcessing:
     def test_agent_state_structure_unchanged(self):
         """Test that agent state structure is preserved."""
         # Import agent state module
-        from src.agent.state import create_initial_state
         from langchain_core.messages import SystemMessage
+
+        from src.agent.state import create_initial_state
 
         # Create initial state
         system_msg = SystemMessage(content="Test system message")
@@ -667,7 +668,8 @@ class TestAgentInitializationAndProcessing:
 
     def test_message_types_unchanged(self):
         """Test that message types are still compatible."""
-        from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
+        from langchain_core.messages import (AIMessage, HumanMessage,
+                                             SystemMessage)
 
         # Create messages
         human_msg = HumanMessage(content="Test query")

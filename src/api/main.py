@@ -8,11 +8,11 @@ import asyncio
 import time
 import uuid
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator, Dict, Any
+from typing import Any, AsyncGenerator, Dict
 
 import structlog
 import uvicorn
-from fastapi import FastAPI, Request, status, BackgroundTasks
+from fastapi import BackgroundTasks, FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
@@ -355,7 +355,7 @@ def create_app() -> FastAPI:
         Returns:
             HTTP response
         """
-        from src.config.logging import set_request_id, clear_context
+        from src.config.logging import clear_context, set_request_id
 
         # Generate request ID
         request_id = str(uuid.uuid4())

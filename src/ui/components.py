@@ -1230,15 +1230,15 @@ def render_welcome_screen() -> None:
     Requirements: 8.1, 8.2, 8.4, 8.5, 8.6, 8.7, 3.1, 3.5, 4.6, 5.5
     """
     # Hero section with centered title, icon, and tagline
-    st.markdown(
-        """
-        <div class='welcome-hero' style='display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 30vh;'>
-            <h1>🏎️ ChatFormula1</h1>
-            <h3>Your AI-powered Formula 1 expert assistant</h3>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+    # st.markdown(
+    #     """
+    #     <div class='welcome-hero' style='display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 30vh;'>
+    #         <h1>🏎️ ChatFormula1</h1>
+    #         <h3>Your AI-powered Formula 1 expert assistant</h3>
+    #     </div>
+    #     """,
+    #     unsafe_allow_html=True,
+    # )
 
     # Brief description (2-3 sentences) of chatbot capabilities
     st.markdown(

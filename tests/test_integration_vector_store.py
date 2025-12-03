@@ -121,8 +121,9 @@ class TestVectorStoreErrorHandling:
 
     async def test_invalid_api_key(self):
         """Test handling of invalid API key."""
-        from src.config.settings import Settings
         import os
+
+        from src.config.settings import Settings
 
         # Create settings with invalid key
         os.environ["PINECONE_API_KEY"] = "invalid_key"
