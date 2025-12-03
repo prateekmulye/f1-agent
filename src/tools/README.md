@@ -1,6 +1,6 @@
-# F1-Slipstream LangChain Tools
+# ChatFormula1 LangChain Tools
 
-This module provides LangChain tools that enable the F1-Slipstream agent to access various data sources and capabilities.
+This module provides LangChain tools that enable the ChatFormula1 agent to access various data sources and capabilities.
 
 ## Overview
 
@@ -232,7 +232,7 @@ See `examples/tools_example.py` for a complete working example.
 
 Run the example:
 ```bash
-cd apps/f1-slipstream-agent
+cd apps/chatformula1-agent
 python -m examples.tools_example
 ```
 

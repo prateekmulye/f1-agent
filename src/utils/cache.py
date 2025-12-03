@@ -1,4 +1,4 @@
-"""Caching utilities for F1-Slipstream agent.
+"""Caching utilities for ChatFormula1 agent.
 
 This module provides in-memory caching for:
 - Vector search results

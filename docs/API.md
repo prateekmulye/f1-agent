@@ -1,6 +1,6 @@
-# F1-Slipstream API Documentation
+# ChatFormula1 API Documentation
 
-Complete API reference for the F1-Slipstream Agent backend.
+Complete API reference for the ChatFormula1 Agent backend.
 
 ## Table of Contents
 
@@ -20,7 +20,7 @@ Complete API reference for the F1-Slipstream Agent backend.
 
 ## Overview
 
-The F1-Slipstream API provides programmatic access to the F1 expert chatbot system. It supports:
+The ChatFormula1 API provides programmatic access to the F1 expert chatbot system. It supports:
 
 - **RESTful endpoints** for chat interactions
 - **Streaming responses** for real-time feedback
@@ -65,7 +65,7 @@ http://localhost:8000
 
 ### Production
 ```
-https://api.f1-slipstream.com
+https://api.chatformula1.com
 ```
 
 ### API Documentation
@@ -888,9 +888,9 @@ WebSocket support for real-time bidirectional communication is planned for a fut
 ## Support
 
 For API support:
-- **Documentation**: https://docs.f1-slipstream.com
-- **Issues**: https://github.com/f1-slipstream/agent/issues
-- **Email**: api-support@f1-slipstream.com
+- **Documentation**: https://docs.chatformula1.com
+- **Issues**: https://github.com/chatformula1/agent/issues
+- **Email**: api-support@chatformula1.com
 
 ---
 

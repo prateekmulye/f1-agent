@@ -1,6 +1,6 @@
 # 🤝 Contributing Guide
 
-Thank you for considering contributing to F1-Slipstream Agent! This guide will help you get started.
+Thank you for considering contributing to ChatFormula1 Agent! This guide will help you get started.
 
 ---
 
@@ -72,11 +72,11 @@ Thank you for considering contributing to F1-Slipstream Agent! This guide will h
 
 ```bash
 # Fork on GitHub, then:
-git clone https://github.com/YOUR_USERNAME/f1-slipstream.git
-cd f1-slipstream
+git clone https://github.com/YOUR_USERNAME/chatformula1.git
+cd chatformula1
 
 # Add upstream remote
-git remote add upstream https://github.com/ORIGINAL_OWNER/f1-slipstream.git
+git remote add upstream https://github.com/ORIGINAL_OWNER/chatformula1.git
 ```
 
 ### 2. Install Dependencies
@@ -317,7 +317,7 @@ Brief description of changes
 ## Project Structure
 
 ```
-f1-slipstream/
+chatformula1/
 ├── src/                      # Source code
 │   ├── agent/               # LangGraph agent
 │   ├── api/                 # FastAPI endpoints

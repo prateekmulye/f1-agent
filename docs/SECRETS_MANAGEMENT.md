@@ -1,6 +1,6 @@
 # Secrets Management Guide
 
-This document provides guidance on managing sensitive configuration and secrets for the F1-Slipstream Agent application.
+This document provides guidance on managing sensitive configuration and secrets for the ChatFormula1 Agent application.
 
 ## Table of Contents
 
@@ -14,7 +14,7 @@ This document provides guidance on managing sensitive configuration and secrets 
 
 ## Overview
 
-The F1-Slipstream Agent requires several API keys and secrets to function:
+The ChatFormula1 Agent requires several API keys and secrets to function:
 
 ### Required Secrets
 
@@ -130,12 +130,12 @@ docker-compose --env-file .env.staging.local up -d
 ```bash
 # Store secrets
 aws secretsmanager create-secret \
-  --name f1-slipstream/openai-api-key \
+  --name chatformula1/openai-api-key \
   --secret-string "sk-..."
 
 # Retrieve in application startup script
 export OPENAI_API_KEY=$(aws secretsmanager get-secret-value \
-  --secret-id f1-slipstream/openai-api-key \
+  --secret-id chatformula1/openai-api-key \
   --query SecretString \
   --output text)
 ```
@@ -156,13 +156,13 @@ export OPENAI_API_KEY=$(gcloud secrets versions access latest \
 ```bash
 # Store secrets
 az keyvault secret set \
-  --vault-name f1-slipstream-vault \
+  --vault-name chatformula1-vault \
   --name openai-api-key \
   --value "sk-..."
 
 # Retrieve in application
 export OPENAI_API_KEY=$(az keyvault secret show \
-  --vault-name f1-slipstream-vault \
+  --vault-name chatformula1-vault \
   --name openai-api-key \
   --query value -o tsv)
 ```
@@ -174,7 +174,7 @@ export OPENAI_API_KEY=$(az keyvault secret show \
 apiVersion: v1
 kind: Secret
 metadata:
-  name: f1-slipstream-secrets
+  name: chatformula1-secrets
 type: Opaque
 stringData:
   openai-api-key: "sk-..."
@@ -188,7 +188,7 @@ stringData:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: f1-slipstream-api
+  name: chatformula1-api
 spec:
   template:
     spec:
@@ -198,7 +198,7 @@ spec:
         - name: OPENAI_API_KEY
           valueFrom:
             secretKeyRef:
-              name: f1-slipstream-secrets
+              name: chatformula1-secrets
               key: openai-api-key
 ```
 
@@ -206,13 +206,13 @@ spec:
 
 ```bash
 # Store secrets
-vault kv put secret/f1-slipstream \
+vault kv put secret/chatformula1 \
   openai_api_key="sk-..." \
   pinecone_api_key="pcsk_..." \
   tavily_api_key="tvly-..."
 
 # Retrieve in application
-vault kv get -field=openai_api_key secret/f1-slipstream
+vault kv get -field=openai_api_key secret/chatformula1
 ```
 
 #### 4. Docker Secrets (Docker Swarm)
@@ -341,10 +341,10 @@ set -e
 echo "Starting secret rotation..."
 
 # Backup current secrets
-kubectl get secret f1-slipstream-secrets -o yaml > secrets-backup-$(date +%Y%m%d).yaml
+kubectl get secret chatformula1-secrets -o yaml > secrets-backup-$(date +%Y%m%d).yaml
 
 # Update secrets (example for Kubernetes)
-kubectl create secret generic f1-slipstream-secrets-new \
+kubectl create secret generic chatformula1-secrets-new \
   --from-literal=openai-api-key="${NEW_OPENAI_KEY}" \
   --from-literal=pinecone-api-key="${NEW_PINECONE_KEY}" \
   --from-literal=tavily-api-key="${NEW_TAVILY_KEY}" \
@@ -352,12 +352,12 @@ kubectl create secret generic f1-slipstream-secrets-new \
   --dry-run=client -o yaml | kubectl apply -f -
 
 # Rolling restart
-kubectl rollout restart deployment/f1-slipstream-api
-kubectl rollout restart deployment/f1-slipstream-ui
+kubectl rollout restart deployment/chatformula1-api
+kubectl rollout restart deployment/chatformula1-ui
 
 # Wait for rollout
-kubectl rollout status deployment/f1-slipstream-api
-kubectl rollout status deployment/f1-slipstream-ui
+kubectl rollout status deployment/chatformula1-api
+kubectl rollout status deployment/chatformula1-ui
 
 echo "Secret rotation complete!"
 ```
@@ -385,7 +385,7 @@ docker-compose logs api | grep -i "api key"
 kubectl get secrets
 
 # Describe secret
-kubectl describe secret f1-slipstream-secrets
+kubectl describe secret chatformula1-secrets
 
 # Check environment variables in container
 docker-compose exec api env | grep API_KEY
@@ -399,7 +399,7 @@ aws sts get-caller-identity
 
 # Check secret access
 aws secretsmanager get-secret-value \
-  --secret-id f1-slipstream/openai-api-key
+  --secret-id chatformula1/openai-api-key
 ```
 
 ### Configuration Validation Failed

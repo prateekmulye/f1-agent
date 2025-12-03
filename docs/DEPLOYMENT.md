@@ -1,12 +1,12 @@
 # 🚀 Deployment Guide
 
-Deploy F1-Slipstream Agent to Render for free in 15 minutes.
+Deploy ChatFormula1 Agent to Render for free in 15 minutes.
 
 ---
 
 ## Overview
 
-This guide will help you deploy F1-Slipstream to Render's free tier, making it publicly accessible and shareable.
+This guide will help you deploy ChatFormula1 to Render's free tier, making it publicly accessible and shareable.
 
 **What You'll Get:**
 - Public URL: `https://your-app.onrender.com`
@@ -43,7 +43,7 @@ Collect these before starting:
 
 ```bash
 # Navigate to project
-cd f1-slipstream
+cd chatformula1
 
 # Initialize git (if not already)
 git init
@@ -52,7 +52,7 @@ git commit -m "Ready for deployment"
 
 # Create GitHub repository at https://github.com/new
 # Then push:
-git remote add origin https://github.com/YOUR_USERNAME/f1-slipstream.git
+git remote add origin https://github.com/YOUR_USERNAME/chatformula1.git
 git branch -M main
 git push -u origin main
 ```
@@ -88,11 +88,11 @@ Follow the prompts to enter your API keys.
 
 2. **Connect Repository**
    - Connect your GitHub account
-   - Select your `f1-slipstream` repository
+   - Select your `chatformula1` repository
    - Click **"Connect"**
 
 3. **Configure Service**
-   - **Name**: `f1-slipstream-ui`
+   - **Name**: `chatformula1-ui`
    - **Region**: Choose closest to you
    - **Branch**: `main`
    - **Root Directory**: Leave empty (or specify if in subdirectory)
@@ -146,7 +146,7 @@ Follow the prompts to enter your API keys.
    - Look for: `You can now view your Streamlit app`
 
 2. **Test Application**
-   - Visit your URL: `https://f1-slipstream-ui.onrender.com`
+   - Visit your URL: `https://chatformula1-ui.onrender.com`
    - First load takes ~30 seconds (cold start)
    - Try: "Who won the 2023 F1 championship?"
 
@@ -165,7 +165,7 @@ Use `render.yaml` for infrastructure-as-code deployment.
 ```yaml
 services:
   - type: web
-    name: f1-slipstream-ui
+    name: chatformula1-ui
     runtime: python
     buildCommand: pip install poetry && poetry install --no-dev
     startCommand: poetry run streamlit run src/ui/app.py --server.port $PORT --server.address 0.0.0.0 --server.headless true
@@ -232,8 +232,8 @@ Hi [Name],
 
 I've built an AI-powered F1 chatbot using modern AI/ML technologies.
 
-🚀 Live Demo: https://f1-slipstream-ui.onrender.com
-📂 GitHub: https://github.com/YOUR_USERNAME/f1-slipstream
+🚀 Live Demo: https://chatformula1-ui.onrender.com
+📂 GitHub: https://github.com/YOUR_USERNAME/chatformula1
 
 Tech Stack:
 - Python, LangChain, LangGraph

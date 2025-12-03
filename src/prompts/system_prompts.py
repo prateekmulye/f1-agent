@@ -1,4 +1,4 @@
-"""System prompt templates for F1-Slipstream agent.
+"""System prompt templates for ChatFormula1 agent.
 
 This module contains system-level prompts that define the agent's persona,
 capabilities, and behavioral guardrails.

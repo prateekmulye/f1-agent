@@ -1,6 +1,6 @@
-# F1-Slipstream Prompt Templates
+# ChatFormula1 Prompt Templates
 
-This module contains comprehensive prompt engineering templates for the F1-Slipstream agent, built using LangChain's prompt framework.
+This module contains comprehensive prompt engineering templates for the ChatFormula1 agent, built using LangChain's prompt framework.
 
 ## Overview
 

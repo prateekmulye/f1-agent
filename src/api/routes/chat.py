@@ -1,4 +1,4 @@
-"""Chat endpoints for F1-Slipstream API.
+"""Chat endpoints for ChatFormula1 API.
 
 This module provides endpoints for chat interactions, including message processing,
 streaming responses, and conversation management.

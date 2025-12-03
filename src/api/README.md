@@ -1,6 +1,6 @@
-# F1-Slipstream API
+# ChatFormula1 API
 
-FastAPI-based REST API for the F1-Slipstream chatbot system.
+FastAPI-based REST API for the ChatFormula1 chatbot system.
 
 ## Features
 
@@ -58,7 +58,7 @@ Root endpoint with API information.
 **Response:**
 ```json
 {
-  "name": "F1-Slipstream",
+  "name": "ChatFormula1",
   "version": "0.1.0",
   "status": "running",
   "docs": "/docs",
@@ -285,7 +285,7 @@ Get non-sensitive configuration summary.
 **Response:**
 ```json
 {
-  "app_name": "F1-Slipstream",
+  "app_name": "ChatFormula1",
   "version": "0.1.0",
   "environment": "development",
   "models": {

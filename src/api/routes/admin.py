@@ -1,4 +1,4 @@
-"""Admin and utility endpoints for F1-Slipstream API.
+"""Admin and utility endpoints for ChatFormula1 API.
 
 This module provides administrative endpoints for data ingestion, statistics,
 and configuration validation.

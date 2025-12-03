@@ -1,4 +1,4 @@
-# F1-Slipstream Data Ingestion Pipeline
+# ChatFormula1 Data Ingestion Pipeline
 
 This module provides a complete data ingestion pipeline for loading F1 knowledge base into Pinecone vector store.
 
@@ -56,7 +56,6 @@ The ingestion pipeline can be run via the CLI:
 
 ```bash
 # Install dependencies first
-cd apps/f1-slipstream-agent
 poetry install
 
 # Check configuration and vector store connection

@@ -341,25 +341,35 @@ def render_header() -> None:
 
 def render_chat_interface(agent: Optional[F1AgentGraph]) -> None:
     """Render the main chat interface with message history and input.
+    
+    This function implements the ChatGPT/Anthropic UX pattern where:
+    - The welcome screen is shown when no messages exist
+    - The chat input (search bar) is ALWAYS visible, even on the welcome screen
+    - Recommendation prompts disappear once the user sends their first message
+    - The UI stays clean and focused on the conversation
 
     Args:
         agent: Initialized F1AgentGraph or None
+        
+    Requirements: 8.6, 3.5, 4.6, 5.5
     """
     # Show welcome screen if no messages (Requirements: 3.4, 8.6)
-    # Welcome screen is hidden when first message is sent
+    # Welcome screen includes hero, description, and recommendation prompts
+    # The persistent search bar (chat input) is rendered below, always visible
     if not st.session_state.messages:
         render_welcome_screen()
-        return  # Don't show chat input yet - it becomes active after transition
+        # Chat input will be rendered below (persistent search bar pattern)
 
-    # Display message history
-    for i, msg in enumerate(st.session_state.messages):
-        message_id = f"msg_{st.session_state.session_id}_{i}"
-        render_message(
-            role=msg["role"],
-            content=msg["content"],
-            metadata=msg.get("metadata"),
-            message_id=message_id if msg["role"] == "assistant" else None,
-        )
+    # Display message history (only if messages exist)
+    if st.session_state.messages:
+        for i, msg in enumerate(st.session_state.messages):
+            message_id = f"msg_{st.session_state.session_id}_{i}"
+            render_message(
+                role=msg["role"],
+                content=msg["content"],
+                metadata=msg.get("metadata"),
+                message_id=message_id if msg["role"] == "assistant" else None,
+            )
 
     # Check if a prompt was just executed (from recommendation button)
     if st.session_state.get("prompt_executed", False):

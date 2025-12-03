@@ -1,6 +1,6 @@
-# F1-Slipstream Agent - Architecture Documentation
+# ChatFormula1 Agent - Architecture Documentation
 
-This document provides a comprehensive overview of the F1-Slipstream Agent architecture, including system design, component interactions, and data flow.
+This document provides a comprehensive overview of the ChatFormula1 Agent architecture, including system design, component interactions, and data flow.
 
 ## Table of Contents
 
@@ -13,7 +13,7 @@ This document provides a comprehensive overview of the F1-Slipstream Agent archi
 
 ## System Overview
 
-F1-Slipstream Agent is a conversational AI system built using RAG (Retrieval-Augmented Generation) architecture. It combines real-time F1 data retrieval, semantic search over historical knowledge, and large language models to provide expert-level Formula 1 insights.
+ChatFormula1 Agent is a conversational AI system built using RAG (Retrieval-Augmented Generation) architecture. It combines real-time F1 data retrieval, semantic search over historical knowledge, and large language models to provide expert-level Formula 1 insights.
 
 ### Key Features
 

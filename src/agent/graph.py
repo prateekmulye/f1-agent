@@ -1,4 +1,4 @@
-"""LangGraph state machine for F1-Slipstream agent orchestration.
+"""LangGraph state machine for ChatFormula1 agent orchestration.
 
 This module implements the main agent graph that orchestrates the RAG pipeline,
 including query analysis, routing, retrieval, context ranking, and generation.
@@ -24,7 +24,7 @@ logger = structlog.get_logger(__name__)
 
 
 class F1AgentGraph:
-    """LangGraph-based agent for F1-Slipstream.
+    """LangGraph-based agent for ChatFormula1.
 
     This class implements a state machine that orchestrates the complete RAG pipeline:
     1. Query Analysis - Detect intent and extract entities

@@ -1,6 +1,6 @@
-"""FastAPI application for F1-Slipstream agent API.
+"""FastAPI application for ChatFormula1 agent API.
 
-This module implements the REST API layer for the F1-Slipstream chatbot,
+This module implements the REST API layer for the ChatFormula1 chatbot,
 providing endpoints for chat interactions, health checks, and admin operations.
 """
 

@@ -1,4 +1,4 @@
-"""Prompt templates module for F1-Slipstream agent.
+"""Prompt templates module for ChatFormula1 agent.
 
 This module provides comprehensive prompt templates for:
 - System prompts defining agent persona and guardrails

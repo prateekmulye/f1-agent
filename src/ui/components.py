@@ -1,4 +1,4 @@
-"""Reusable UI components for F1-Slipstream Streamlit app.
+"""Reusable UI components for ChatFormula1 Streamlit app.
 
 This module provides components for:
 - Message display with role-based styling
@@ -268,6 +268,33 @@ def apply_f1_theme() -> None:
         box-shadow: 0 0 0 1px {theme.f1_red};
         outline: none;
         transition: all {theme.transition_fast};
+    }}
+    
+    /* Persistent search bar on welcome screen - ChatGPT/Anthropic UX pattern */
+    .stChatInput {{
+        margin-top: {theme.spacing_xl};
+        margin-bottom: {theme.spacing_md};
+        animation: fadeIn 0.6s ease-in;
+    }}
+    
+    .stChatInput > div {{
+        border-radius: {theme.radius_md};
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        transition: box-shadow {theme.transition_normal};
+    }}
+    
+    .stChatInput > div:hover {{
+        box-shadow: 0 4px 12px rgba(225, 6, 0, 0.2);
+        transition: box-shadow {theme.transition_normal};
+    }}
+    
+    .stChatInput > div > div {{
+        border-radius: {theme.radius_md};
+    }}
+    
+    /* Welcome screen specific spacing for search bar */
+    .stChatInput + div {{
+        margin-top: {theme.spacing_lg};
     }}
 
     /* ========================================
@@ -978,7 +1005,8 @@ def execute_prompt(query: str) -> None:
     This function implements the welcome screen to chat transition by:
     1. Adding the query to message history as a user message (Requirement 3.4)
     2. Setting a flag to trigger agent processing (Requirement 3.5)
-    3. Triggering a rerun to update the UI and hide welcome screen
+    3. Rotating the recommendation prompts to show different capabilities
+    4. Triggering a rerun to update the UI and hide welcome screen
     
     When the message is added to history, the welcome screen will be hidden
     on the next render because st.session_state.messages is no longer empty.
@@ -1005,6 +1033,10 @@ def execute_prompt(query: str) -> None:
     # This triggers the agent to generate a response
     st.session_state.prompt_executed = True
     
+    # Rotate prompts to showcase different capabilities
+    if "prompt_rotation_index" in st.session_state:
+        st.session_state.prompt_rotation_index = (st.session_state.prompt_rotation_index + 1) % 2
+    
     logger.info(
         "recommendation_prompt_executed",
         query=query,
@@ -1020,7 +1052,7 @@ def execute_prompt(query: str) -> None:
 def render_recommendation_prompts() -> None:
     """Render interactive recommendation prompt buttons in a 2x2 grid.
     
-    This component displays 4 diverse example prompts covering:
+    This component displays 4 diverse prompts covering:
     - Standings queries
     - Race results queries
     - Prediction queries
@@ -1028,6 +1060,8 @@ def render_recommendation_prompts() -> None:
     
     The prompts are displayed as clickable buttons in a 2x2 grid layout.
     When clicked, they execute the query as if the user typed it.
+    
+    The prompts rotate to showcase different capabilities of the app.
     
     Accessibility features:
     - Descriptive help text for each button
@@ -1037,8 +1071,9 @@ def render_recommendation_prompts() -> None:
     
     Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 4.6, 5.5
     """
-    # Define 4 diverse prompts covering different categories
-    prompts = [
+    # Define diverse prompts covering different categories - rotated to showcase different capabilities
+    all_prompts = [
+        # Standings queries
         RecommendationPrompt(
             icon="🏆",
             text="Who is leading the championship?",
@@ -1046,11 +1081,25 @@ def render_recommendation_prompts() -> None:
             query="Who is currently leading the Formula 1 World Championship?"
         ),
         RecommendationPrompt(
+            icon="📊",
+            text="Show current constructor standings",
+            category="standings",
+            query="What are the current Formula 1 constructor standings?"
+        ),
+        # Race results queries
+        RecommendationPrompt(
             icon="🏁",
             text="What happened in the last race?",
             category="results",
             query="What were the results of the most recent Formula 1 race?"
         ),
+        RecommendationPrompt(
+            icon="🎯",
+            text="Show me the fastest lap times",
+            category="results",
+            query="What were the fastest lap times in the most recent race?"
+        ),
+        # Prediction queries
         RecommendationPrompt(
             icon="🔮",
             text="Predict the winner of the next race",
@@ -1058,11 +1107,37 @@ def render_recommendation_prompts() -> None:
             query="Can you predict who will win the next Formula 1 race?"
         ),
         RecommendationPrompt(
-            icon="📊",
-            text="Show me Lewis Hamilton's career stats",
+            icon="🎲",
+            text="Who will win the championship?",
+            category="prediction",
+            query="Based on current form, who is most likely to win the World Championship?"
+        ),
+        # Historical queries
+        RecommendationPrompt(
+            icon="📚",
+            text="Lewis Hamilton's career stats",
             category="historical",
             query="What are Lewis Hamilton's career statistics and achievements in Formula 1?"
         ),
+        RecommendationPrompt(
+            icon="🏎️",
+            text="Most successful F1 teams in history",
+            category="historical",
+            query="Which Formula 1 teams have been the most successful in history?"
+        ),
+    ]
+    
+    # Initialize rotation index in session state if not present
+    if "prompt_rotation_index" not in st.session_state:
+        st.session_state.prompt_rotation_index = 0
+    
+    # Select 4 prompts based on rotation index, ensuring we get one from each category
+    rotation_idx = st.session_state.prompt_rotation_index
+    prompts = [
+        all_prompts[rotation_idx % 2],  # Standings (0 or 1)
+        all_prompts[2 + (rotation_idx % 2)],  # Results (2 or 3)
+        all_prompts[4 + (rotation_idx % 2)],  # Prediction (4 or 5)
+        all_prompts[6 + (rotation_idx % 2)],  # Historical (6 or 7)
     ]
     
     # Add semantic heading for screen readers
@@ -1127,22 +1202,27 @@ def render_recommendation_prompts() -> None:
 
 
 def render_welcome_screen() -> None:
-    """Render welcome screen with hero section, description, and recommendation prompts.
+    """Render welcome screen with hero section, description, search bar, and recommendation prompts.
     
     This component displays when no conversation history exists (st.session_state.messages is empty).
     It includes:
     - Hero section with centered title, icon, and tagline using F1 theme colors
     - Brief description of chatbot capabilities
+    - Persistent search bar positioned above recommendation prompts (ChatGPT/Anthropic UX)
     - Fade-in animation using CSS keyframes
     - Vertical centering using flexbox CSS
-    - Interactive recommendation prompts
+    - Interactive recommendation prompts that rotate to showcase different capabilities
     
-    Requirements: 8.1, 8.2, 8.4, 8.5, 8.7, 3.1
+    The search bar is always visible on the welcome screen and positioned above the recommendation
+    prompts with proper spacing. Once the user types and submits or clicks a recommendation,
+    the UI transitions to the chat interface cleanly (ChatGPT/Gemini style).
+    
+    Requirements: 8.1, 8.2, 8.4, 8.5, 8.6, 8.7, 3.1, 3.5, 4.6, 5.5
     """
     # Hero section with centered title, icon, and tagline
     st.markdown(
         """
-        <div class='welcome-hero' style='display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 40vh;'>
+        <div class='welcome-hero' style='display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 30vh;'>
             <h1>🏎️ ChatFormula1</h1>
             <h3>Your AI-powered Formula 1 expert assistant</h3>
         </div>
@@ -1153,16 +1233,19 @@ def render_welcome_screen() -> None:
     # Brief description (2-3 sentences) of chatbot capabilities
     st.markdown(
         """
-        <div style='text-align: center; margin: 2rem auto; max-width: 600px; color: #888888; font-size: 1.1rem; line-height: 1.6;'>
+        <div style='text-align: center; margin: 1.5rem auto; max-width: 600px; color: #888888; font-size: 1.1rem; line-height: 1.6;'>
             Get instant answers about F1 standings, race results, and predictions powered by advanced AI. 
-            Access real-time data and historical statistics to explore everything Formula 1. 
-            Ask me anything about drivers, teams, races, or technical regulations!
+            Access real-time data and historical statistics to explore everything Formula 1.
         </div>
         """,
         unsafe_allow_html=True,
     )
     
-    # Render recommendation prompts
+    # Add spacing before recommendation prompts
+    st.markdown("<div style='margin-top: 2rem;'></div>", unsafe_allow_html=True)
+    
+    # Render recommendation prompts (positioned above where chat input will appear)
+    # These will disappear once the user sends a message (either by typing or clicking a prompt)
     render_recommendation_prompts()
 
 

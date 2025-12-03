@@ -1,10 +1,9 @@
-# F1-Slipstream UI Quick Start Guide
+# ChatFormula1 UI Quick Start Guide
 
 ## Installation
 
 ```bash
 # Install dependencies
-cd apps/f1-slipstream-agent
 poetry install
 
 # Copy environment template
@@ -160,4 +159,4 @@ MAX_CONVERSATION_HISTORY=10       # 1-50
 6. ✅ Test error handling (invalid queries)
 7. ✅ Try conversation continuity (follow-ups)
 
-Enjoy using F1-Slipstream! 🏎️
+Enjoy using ChatFormula1! 🏎️

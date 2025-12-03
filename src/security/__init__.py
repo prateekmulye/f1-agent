@@ -1,4 +1,4 @@
-"""Security module for F1-Slipstream application.
+"""Security module for ChatFormula1 application.
 
 This module provides security features including input validation, sanitization,
 rate limiting, and authentication.

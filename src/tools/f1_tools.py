@@ -1,4 +1,4 @@
-"""LangChain tools for F1-Slipstream agent capabilities.
+"""LangChain tools for ChatFormula1 agent capabilities.
 
 This module provides tools that the LangGraph agent can use to:
 1. Search for current F1 data using Tavily

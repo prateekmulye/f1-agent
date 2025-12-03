@@ -1,6 +1,6 @@
-# F1-Slipstream Streamlit UI
+# ChatFormula1 Streamlit UI
 
-This module implements the Streamlit-based user interface for the F1-Slipstream chatbot.
+This module implements the Streamlit-based user interface for the ChatFormula1 chatbot.
 
 ## Features
 
@@ -26,7 +26,7 @@ This module implements the Streamlit-based user interface for the F1-Slipstream 
 
 ```bash
 # From the project root
-poetry run streamlit run apps/f1-slipstream-agent/src/ui/app.py
+poetry run streamlit run src/ui/app.py
 
 # Or using the configured script
 poetry run f1-ui

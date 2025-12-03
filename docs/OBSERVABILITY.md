@@ -1,10 +1,10 @@
 # Observability & Monitoring
 
-This document describes the observability and monitoring features implemented in F1-Slipstream.
+This document describes the observability and monitoring features implemented in ChatFormula1.
 
 ## Overview
 
-F1-Slipstream includes comprehensive observability features:
+ChatFormula1 includes comprehensive observability features:
 
 - **Structured Logging**: JSON-formatted logs with correlation IDs
 - **Performance Timing**: Track operation latency with detailed checkpoints
@@ -45,7 +45,7 @@ logger.info(
 
 Development (pretty console):
 ```
-2024-01-15 10:30:45 [info     ] user_query_received    app=f1-slipstream query=Who won the championship? request_id=req-12345 session_id=session-abc user_id=user-123
+2024-01-15 10:30:45 [info     ] user_query_received    app=chatformula1 query=Who won the championship? request_id=req-12345 session_id=session-abc user_id=user-123
 ```
 
 Production (JSON):
@@ -55,7 +55,7 @@ Production (JSON):
   "timestamp": "2024-01-15T10:30:45.123456Z",
   "level": "info",
   "logger": "src.api.routes.chat",
-  "app": "f1-slipstream",
+  "app": "chatformula1",
   "request_id": "req-12345",
   "session_id": "session-abc",
   "query": "Who won the championship?",
@@ -238,7 +238,7 @@ Add to your `prometheus.yml`:
 
 ```yaml
 scrape_configs:
-  - job_name: 'f1-slipstream'
+  - job_name: 'chatformula1'
     scrape_interval: 15s
     static_configs:
       - targets: ['localhost:8000']
@@ -396,7 +396,7 @@ See `examples/observability_example.py` for a complete example demonstrating all
 Run the example:
 
 ```bash
-cd apps/f1-slipstream-agent
+cd apps/chatformula1-agent
 poetry run python examples/observability_example.py
 ```
 

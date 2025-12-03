@@ -1,4 +1,4 @@
-"""Setup script for F1-Slipstream Agent.
+"""Setup script for ChatFormula1.
 
 Note: This project uses Poetry for dependency management.
 This setup.py is provided for compatibility with tools that require it.
@@ -11,9 +11,9 @@ For development, use Poetry:
 from setuptools import find_packages, setup
 
 setup(
-    name="f1-slipstream-agent",
+    name="chatformula1",
     version="0.1.0",
-    author="F1-Slipstream Team",
+    author="Prateek Mulye",
     description="AI-powered Formula 1 expert chatbot",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
