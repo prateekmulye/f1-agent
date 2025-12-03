@@ -312,9 +312,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Contact
 
-- **GitHub**: [Your GitHub Profile]
-- **LinkedIn**: [Your LinkedIn Profile]
-- **Email**: [Your Email]
+- **GitHub**: [Current Projects 🧠 🚧](https://github.com/prateekmulye)
+- **LinkedIn**: [Say Hi! 🤝](https://www.linkedin.com/in/prateekmulye/)
+- **Email**: prateek@chatformula1.com
 
 ---
 
