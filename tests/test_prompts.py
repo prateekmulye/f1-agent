@@ -22,7 +22,10 @@ class TestSystemPrompts:
 
     def test_f1_expert_prompt_content(self):
         """Test F1 expert system prompt contains key elements."""
-        assert "ChatFormula1" in F1_EXPERT_SYSTEM_PROMPT or "F1-Slipstream" in F1_EXPERT_SYSTEM_PROMPT
+        assert (
+            "ChatFormula1" in F1_EXPERT_SYSTEM_PROMPT
+            or "F1-Slipstream" in F1_EXPERT_SYSTEM_PROMPT
+        )
         assert "Formula 1" in F1_EXPERT_SYSTEM_PROMPT
         assert "expert" in F1_EXPERT_SYSTEM_PROMPT.lower()
         assert "accuracy" in F1_EXPERT_SYSTEM_PROMPT.lower()
@@ -173,6 +176,7 @@ class TestPromptSafety:
         for query in queries:
             is_safe, warning = validate_prompt_safety(query)
             assert is_safe is True
+
 
 @pytest.mark.unit
 class TestPromptFormatting:

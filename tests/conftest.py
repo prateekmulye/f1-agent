@@ -351,7 +351,7 @@ def sample_documents() -> List[Document]:
 
     Example:
         >>> def test_document_filter(sample_documents):
-        ...     driver_docs = [d for d in sample_documents 
+        ...     driver_docs = [d for d in sample_documents
         ...                    if d.metadata.get("category") == "driver_stats"]
         ...     assert len(driver_docs) == 1
         ...     assert "Hamilton" in driver_docs[0].page_content
@@ -432,7 +432,7 @@ def sample_search_results() -> List[Dict[str, Any]]:
 
     Example:
         >>> def test_search_ranking(sample_search_results):
-        ...     sorted_results = sorted(sample_search_results, 
+        ...     sorted_results = sorted(sample_search_results,
         ...                            key=lambda x: x["score"], reverse=True)
         ...     assert sorted_results[0]["score"] == 0.92
 

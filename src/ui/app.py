@@ -90,7 +90,7 @@ def initialize_session_state() -> None:
 
     if "theme" not in st.session_state:
         st.session_state.theme = "dark"
-    
+
     if "prompt_executed" not in st.session_state:
         st.session_state.prompt_executed = False
 
@@ -291,13 +291,13 @@ def render_sidebar() -> None:
 
 def render_header() -> None:
     """Render the enhanced header with About and Settings buttons.
-    
+
     Accessibility features:
     - ARIA labels on icon-only buttons for screen readers
     - Descriptive help text for keyboard users
     - Semantic HTML structure with proper heading hierarchy
     - High contrast colors meeting WCAG 2.1 Level AA standards
-    
+
     Requirements: 4.6, 5.5
     """
     # Three-column layout for settings button, title, and about button
@@ -309,7 +309,7 @@ def render_header() -> None:
             "⚙️",
             key="settings_btn",
             help="Open Settings - Configure temperature, conversation history, and system options",
-            use_container_width=False
+            use_container_width=False,
         ):
             st.session_state.show_settings = not st.session_state.show_settings
             st.rerun()
@@ -324,7 +324,7 @@ def render_header() -> None:
                 <p style='color: #888; margin-top: 0;' role="doc-subtitle">Your AI-powered Formula 1 expert assistant</p>
             </div>
             """,
-            unsafe_allow_html=True
+            unsafe_allow_html=True,
         )
 
     with col3:
@@ -333,7 +333,7 @@ def render_header() -> None:
             "ℹ️",
             key="about_btn",
             help="About ChatFormula1 - Learn about the project, features, and creator",
-            use_container_width=False
+            use_container_width=False,
         ):
             st.session_state.show_about = not st.session_state.show_about
             st.rerun()
@@ -341,7 +341,7 @@ def render_header() -> None:
 
 def render_chat_interface(agent: Optional[F1AgentGraph]) -> None:
     """Render the main chat interface with message history and input.
-    
+
     This function implements the ChatGPT/Anthropic UX pattern where:
     - The welcome screen is shown when no messages exist
     - The chat input (search bar) is ALWAYS visible, even on the welcome screen
@@ -350,7 +350,7 @@ def render_chat_interface(agent: Optional[F1AgentGraph]) -> None:
 
     Args:
         agent: Initialized F1AgentGraph or None
-        
+
     Requirements: 8.6, 3.5, 4.6, 5.5
     """
     # Show welcome screen if no messages (Requirements: 3.4, 8.6)
@@ -376,10 +376,10 @@ def render_chat_interface(agent: Optional[F1AgentGraph]) -> None:
         # Get the last user message (the one just added by execute_prompt)
         last_message = st.session_state.messages[-1]
         prompt = last_message["content"]
-        
+
         # Clear the flag
         st.session_state.prompt_executed = False
-        
+
         # Generate response
         with st.chat_message("assistant"):
             response_placeholder = st.empty()
@@ -659,10 +659,10 @@ def main() -> None:
     with col_center:
         # Render header
         render_header()
-        
+
         # Render settings panel (collapsible, positioned below header)
         render_settings_panel()
-        
+
         # Render about modal if triggered
         render_about_modal()
 
@@ -677,9 +677,6 @@ def main() -> None:
 
         # Render chat interface
         render_chat_interface(agent)
-
-
-
 
 
 if __name__ == "__main__":

@@ -550,9 +550,7 @@ async def get_prometheus_metrics():
     # Latency metrics
     latency_stats = metrics_collector.get_latency_stats()
     if latency_stats.get("count", 0) > 0:
-        lines.append(
-            "# HELP chatformula1_latency_seconds Operation latency in seconds"
-        )
+        lines.append("# HELP chatformula1_latency_seconds Operation latency in seconds")
         lines.append("# TYPE chatformula1_latency_seconds summary")
         lines.append(
             f'chatformula1_latency_seconds{{quantile="0.5"}} {latency_stats["p50_ms"] / 1000}'
@@ -585,9 +583,7 @@ async def get_prometheus_metrics():
             )
         lines.append("")
 
-        lines.append(
-            "# HELP chatformula1_api_success_rate API success rate by service"
-        )
+        lines.append("# HELP chatformula1_api_success_rate API success rate by service")
         lines.append("# TYPE chatformula1_api_success_rate gauge")
         for service, stats in api_stats.items():
             lines.append(
