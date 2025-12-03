@@ -1,13 +1,14 @@
 # ChatFormula1 Tests
 
-This directory contains comprehensive tests for the ChatFormula1 agent system.
+This directory contains a streamlined test suite for the ChatFormula1 agent system, focusing on tests that provide clear value in catching bugs and documenting behavior.
 
 ## Test Structure
 
+The test suite contains 18 test files organized by functionality:
+
 ```
 tests/
-├── conftest.py                          # Pytest configuration and fixtures
-├── test_utils.py                        # Test utilities and helpers
+├── conftest.py                          # Pytest configuration and shared fixtures
 ├── test_config.py                       # Configuration tests
 ├── test_exceptions.py                   # Exception handling tests
 ├── test_security.py                     # Security feature tests
@@ -15,54 +16,36 @@ tests/
 ├── test_data_loader.py                  # Data loading unit tests
 ├── test_prompts.py                      # Prompt template unit tests
 ├── test_fallback.py                     # Fallback mechanism unit tests
+├── test_tavily_client.py                # Tavily client unit tests
 ├── test_integration_vector_store.py     # Vector store integration tests
 ├── test_integration_tavily.py           # Tavily search integration tests
 ├── test_integration_api.py              # API endpoint integration tests
 ├── test_integration_agent.py            # Agent flow integration tests
 ├── test_integration_complete.py         # Complete integration tests
-├── test_e2e_user_workflows.py          # End-to-end user workflow tests
-├── test_requirements_validation.py      # Requirements validation tests
-├── test_user_acceptance.py              # User acceptance tests
-└── test_performance_benchmarks.py       # Performance benchmark tests
+└── test_e2e_user_workflows.py          # End-to-end user workflow tests
 ```
 
 ## Test Categories
 
 ### Unit Tests (`@pytest.mark.unit`)
-- Test individual components in isolation
-- Use mocks for external dependencies
-- Fast execution
-- No external API calls required
+Fast, isolated tests that validate individual components using mocks for external dependencies.
 
-**Examples:**
-- Configuration loading and validation
-- Document processing and chunking
-- Prompt template rendering
-- Error handling logic
+**Files:** test_config.py, test_exceptions.py, test_document_processor.py, test_data_loader.py, test_prompts.py, test_fallback.py, test_tavily_client.py
 
 ### Integration Tests (`@pytest.mark.integration`)
-- Test component interactions
-- May use real external services (with test credentials)
-- Slower execution
-- Require API keys for full testing
+Tests that validate component interactions with real external services (requires test credentials).
 
-**Examples:**
-- Vector store operations with Pinecone
-- Tavily search API integration
-- FastAPI endpoint testing
-- LangGraph agent flow
+**Files:** test_integration_vector_store.py, test_integration_tavily.py, test_integration_api.py, test_integration_agent.py, test_integration_complete.py
 
 ### End-to-End Tests (`@pytest.mark.e2e`)
-- Test complete user workflows
-- Simulate real user interactions
-- Require all services to be available
-- Slowest execution
+Complete user workflow tests that simulate real user interactions across the entire system.
 
-**Examples:**
-- Multi-turn conversations
-- Prediction generation workflow
-- Error recovery scenarios
-- Complex conversation flows
+**Files:** test_e2e_user_workflows.py
+
+### Security Tests (`@pytest.mark.security`)
+Tests that validate authentication, authorization, input validation, and other security features.
+
+**Files:** test_security.py
 
 ## Running Tests
 
@@ -71,19 +54,19 @@ tests/
 poetry run pytest
 ```
 
-### Run Only Unit Tests
+### Run by Category
 ```bash
+# Unit tests only (fast, no external dependencies)
 poetry run pytest -m unit
-```
 
-### Run Only Integration Tests
-```bash
+# Integration tests only (requires real API keys)
 poetry run pytest -m integration
-```
 
-### Run Only E2E Tests
-```bash
+# E2E tests only (requires all services)
 poetry run pytest -m e2e
+
+# Security tests only
+poetry run pytest -m security
 ```
 
 ### Run Specific Test File
@@ -94,6 +77,7 @@ poetry run pytest tests/test_document_processor.py
 ### Run with Coverage
 ```bash
 poetry run pytest --cov=src --cov-report=html
+open htmlcov/index.html
 ```
 
 ### Run with Verbose Output
@@ -156,15 +140,7 @@ def test_example(test_settings, sample_documents):
 
 ## Test Utilities
 
-The `test_utils.py` module provides helper functions:
-
-- `create_mock_document()`: Create mock documents
-- `create_mock_messages()`: Create mock conversation messages
-- `create_mock_search_result()`: Create mock search results
-- `assert_document_equal()`: Assert documents are equal
-- `assert_message_equal()`: Assert messages are equal
-- `MockStreamingResponse`: Mock streaming responses
-- `AsyncMockIterator`: Mock async iterators
+Shared test utilities and fixtures are available in `conftest.py`. See the "Test Fixtures" section below for details on available fixtures and helper functions.
 
 ## Skipping Tests
 
@@ -283,62 +259,95 @@ poetry run pytest
 
 ## Best Practices
 
-1. **Keep unit tests fast**: Use mocks for external dependencies
-2. **Test one thing at a time**: Each test should verify a single behavior
-3. **Use descriptive names**: Test names should describe what they test
-4. **Arrange-Act-Assert**: Structure tests clearly
-5. **Clean up resources**: Use fixtures for setup/teardown
-6. **Mark tests appropriately**: Use `@pytest.mark.unit`, `@pytest.mark.integration`, etc.
-7. **Skip expensive tests in CI**: Use markers to control which tests run where
-8. **Maintain test data**: Keep test fixtures up to date
-9. **Test error cases**: Don't just test happy paths
-10. **Document complex tests**: Add docstrings explaining what's being tested
+1. **Keep unit tests fast** - Use mocks for external dependencies, aim for <10 seconds total execution time
+2. **Test one thing at a time** - Each test should verify a single behavior
+3. **Use descriptive names** - Test names should describe what they test and what the expected outcome is
+4. **Arrange-Act-Assert** - Structure tests clearly with setup, execution, and verification phases
+5. **Clean up resources** - Use fixtures for setup/teardown to avoid test pollution
+6. **Mark tests appropriately** - Use `@pytest.mark.unit`, `@pytest.mark.integration`, etc. for proper test organization
+7. **Test error cases** - Don't just test happy paths, verify error handling and edge cases
+8. **Document complex tests** - Add docstrings explaining what's being tested and why
+9. **Maintain test data** - Keep test fixtures up to date and realistic
+10. **Review test value regularly** - Remove tests that don't catch bugs or document important behavior
 
 ## Contributing
 
 When adding new features:
-1. Write unit tests first (TDD approach)
+1. Write unit tests first (TDD approach recommended)
 2. Add integration tests for external service interactions
-3. Add E2E tests for user-facing workflows
+3. Add E2E tests for critical user-facing workflows
 4. Ensure all tests pass before submitting PR
-5. Maintain or improve code coverage
+5. Maintain or improve code coverage (target: 70%+ on core modules)
+6. Follow the "What Makes a Good Test" guidelines above
+7. Remove or update tests that become obsolete
 
-## Validation Tests
+## What Makes a Good Test
 
-### Requirements Validation (test_requirements_validation.py)
-Tests all 12 requirements from the requirements document with 25+ test cases covering:
-- Current F1 data queries
-- Historical conversations
-- Race predictions
-- Real-time search
-- Software engineering best practices
-- RAG pipeline implementation
-- Prompt engineering
-- Error handling and resilience
+The test suite follows these principles to ensure tests provide real value:
 
-### User Acceptance Testing (test_user_acceptance.py)
-Tests realistic user scenarios with 35+ test cases covering:
-- Real F1 queries (standings, champions, predictions)
-- Conversation quality and context maintenance
-- Edge cases (empty queries, off-topic, timeouts)
-- UI/UX quality (formatting, citations, error messages)
-- Response quality (accuracy, reasoning, length)
+### Write Tests That:
+1. **Test behavior, not implementation** - Focus on what the code does, not how it does it. Avoid testing private methods or internal structure.
+2. **Test real functionality** - Use real objects and minimal mocking. Tests should validate actual system behavior, not mock behavior.
+3. **Have clear value** - Each test should catch a specific type of bug or document important behavior. Ask: "What bug would this test catch?"
+4. **Are easy to understand** - Test names and code should be self-documenting. A developer should understand what's being tested by reading the test name.
+5. **Are maintainable** - Simple setup, clear assertions, minimal dependencies. If a test is hard to understand, it's hard to maintain.
 
-### Performance Benchmarks (test_performance_benchmarks.py)
-Measures performance metrics with 30+ benchmarks covering:
-- Response time percentiles (P50, P95, P99)
-- Concurrent load tests (10, 50, 100 users)
-- API latency measurements
-- Memory usage profiling
-- Throughput and scalability tests
+### Avoid Tests That:
+1. **Test obvious behavior** - Don't test that framework features work (e.g., testing that LangChain's prompt templates work).
+2. **Duplicate coverage** - One test per behavior is enough. Multiple tests for the same thing add maintenance burden without value.
+3. **Test implementation details** - Don't test internal structure, private methods, or how something is implemented.
+4. **Are overly complex** - If a test requires deep understanding of multiple unrelated components, it's too complex.
+5. **Test edge cases with low probability** - Focus on realistic scenarios that users will actually encounter.
 
-**Run validation tests:**
-```bash
-# All validation tests
-poetry run pytest tests/test_requirements_validation.py tests/test_user_acceptance.py tests/test_performance_benchmarks.py -v
+### Test Structure Best Practices:
+- **Arrange-Act-Assert**: Structure tests clearly with setup, execution, and verification phases
+- **One assertion per test**: Each test should verify a single behavior (though multiple assertions for the same behavior are fine)
+- **Descriptive names**: Use names like `test_document_processor_splits_long_text_into_chunks` not `test_process`
+- **Clear failure messages**: When a test fails, it should be obvious what went wrong
+- **Minimal setup**: Use fixtures for common setup, but keep test-specific setup in the test itself
 
-# With coverage
-poetry run pytest tests/test_requirements_validation.py tests/test_user_acceptance.py tests/test_performance_benchmarks.py --cov=src --cov-report=html
+### When to Write Each Type of Test:
+
+**Unit Tests** - Write when:
+- Testing a single component in isolation
+- Testing business logic or data transformations
+- Testing error handling for specific conditions
+- You need fast feedback during development
+
+**Integration Tests** - Write when:
+- Testing interactions between components
+- Testing external API integrations
+- Testing database operations
+- Verifying that components work together correctly
+
+**E2E Tests** - Write when:
+- Testing complete user workflows
+- Verifying the system works end-to-end
+- Testing critical user journeys
+- You need confidence that features work from the user's perspective
+
+### Examples of Good vs. Bad Tests:
+
+**Good Test:**
+```python
+@pytest.mark.unit
+def test_document_processor_splits_text_exceeding_chunk_size():
+    """Document processor should split text longer than chunk_size into multiple chunks."""
+    processor = DocumentProcessor(chunk_size=100)
+    long_text = "a" * 250
+    chunks = processor.process(long_text)
+    assert len(chunks) >= 3
+    assert all(len(chunk) <= 100 for chunk in chunks)
+```
+
+**Bad Test:**
+```python
+@pytest.mark.unit
+def test_document_processor_has_chunk_size_attribute():
+    """Test that DocumentProcessor has chunk_size attribute."""
+    processor = DocumentProcessor(chunk_size=100)
+    assert hasattr(processor, 'chunk_size')  # Tests implementation detail
+    assert processor.chunk_size == 100  # Tests obvious behavior
 ```
 
 ## Resources

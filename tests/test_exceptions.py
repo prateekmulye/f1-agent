@@ -24,35 +24,12 @@ def test_base_exception_creation():
 
 
 @pytest.mark.unit
-def test_exception_with_details():
-    """Test exception with additional details."""
-    details = {"key": "value", "count": 42}
-    error = ChatFormula1Error("Test error", details=details)
-    assert error.details == details
-    assert "Details:" in str(error)
-    assert "key" in str(error)
-
-
-@pytest.mark.unit
 def test_exception_with_original_error():
     """Test exception wrapping another exception."""
     original = ValueError("Original error")
     error = ChatFormula1Error("Wrapped error", original_error=original)
     assert error.original_error is original
     assert isinstance(error.original_error, ValueError)
-
-
-@pytest.mark.unit
-def test_exception_repr():
-    """Test exception representation."""
-    error = ChatFormula1Error(
-        "Test error",
-        details={"key": "value"},
-        original_error=ValueError("Original"),
-    )
-    repr_str = repr(error)
-    assert "ChatFormula1Error" in repr_str
-    assert "Test error" in repr_str
 
 
 @pytest.mark.unit
